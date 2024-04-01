@@ -2,7 +2,9 @@ package cgoutils_test
 
 import (
 	"encoding/json"
+	"runtime"
 	"testing"
+	"unsafe"
 
 	"github.com/alwitt/cgoutils"
 	"github.com/apex/log"
@@ -27,22 +29,7 @@ func TestBasicCSlice(t *testing.T) {
 		assert.Len(buf, 32)
 	}
 
-	// Case 1: allocated in a loop
-	{
-		for idx := 0; idx < 1000; idx++ {
-			uut, err := cgoutils.AllocateBasicCSlice(8192)
-			assert.Nil(err)
-			bufLen, err := uut.GetLen()
-			assert.Nil(err)
-			assert.Equal(8192, bufLen)
-			buf, err := uut.GetSlice()
-			assert.Nil(err)
-			assert.NotNil(buf)
-			assert.Len(buf, 8192)
-		}
-	}
-
-	// Case 2: transfer data via buffer
+	// Case 1: transfer data via buffer
 	{
 		type testStructure struct {
 			A string
@@ -60,15 +47,42 @@ func TestBasicCSlice(t *testing.T) {
 		{
 			buf, err := uut.GetSlice()
 			assert.Nil(err)
-			copy(buf, test)
+			assert.Equal(len(test), copy(buf, test))
 		}
 
-		// Unmarshal using the new buffer
+		// Verify content
 		{
 			buf, err := uut.GetSlice()
 			assert.Nil(err)
 			log.Debugf("Stored '%s'", string(buf))
 			assert.EqualValues(test, buf[:len(test)])
 		}
+		{
+			buf, err := uut.GetCArray()
+			assert.Nil(err)
+			for idx, char := range test {
+				assert.Equal(
+					char, *(*byte)(unsafe.Pointer(uintptr(buf) + (uintptr(idx)))),
+				)
+			}
+		}
 	}
+
+	// Case 2: allocated in a loop
+	{
+		for idx := 0; idx < 1000; idx++ {
+			uut, err := cgoutils.AllocateBasicCSlice(8192)
+			assert.Nil(err)
+			bufLen, err := uut.GetLen()
+			assert.Nil(err)
+			assert.Equal(8192, bufLen)
+			buf, err := uut.GetSlice()
+			assert.Nil(err)
+			assert.NotNil(buf)
+			assert.Len(buf, 8192)
+		}
+	}
+
+	// Trigger GC
+	runtime.GC()
 }
