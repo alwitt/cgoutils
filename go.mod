@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/apex/log v1.9.0
+	github.com/google/uuid v1.1.1
 	github.com/stretchr/testify v1.9.0
 )
 

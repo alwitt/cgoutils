@@ -8,6 +8,7 @@ import (
 
 	"github.com/alwitt/cgoutils"
 	"github.com/apex/log"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -37,7 +38,7 @@ func TestBasicCSlice(t *testing.T) {
 			C bool
 		}
 
-		test, err := json.Marshal(&testStructure{A: "hello", B: -42, C: true})
+		test, err := json.Marshal(&testStructure{A: uuid.New().String(), B: -42, C: true})
 		assert.Nil(err)
 
 		uut, err := cgoutils.AllocateBasicCSlice(64)

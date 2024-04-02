@@ -80,7 +80,7 @@ func (b *basicCSlice) allocate(length int) error {
 	return nil
 }
 
-// allocate release the core buffer in c
+// release release the core buffer in c
 func (b *basicCSlice) release() error {
 	if b.core == nil {
 		return fmt.Errorf("slice is not allocated")
@@ -139,10 +139,10 @@ func (b *basicCSlice) GetCArray() (unsafe.Pointer, error) {
 /*
 AllocateBasicCSlice allocate a basic C array backed slice
 
-	@param len uint64 - length of the array
+	@param length uint64 - length of the array
 	@return CSlice object
 */
-func AllocateBasicCSlice(len int) (CSlice, error) {
+func AllocateBasicCSlice(length int) (CSlice, error) {
 	instance := &basicCSlice{core: nil}
-	return instance, instance.allocate(len)
+	return instance, instance.allocate(length)
 }
