@@ -33,6 +33,7 @@ type Crypto interface {
 		GetHasherKey get a key for the cryptographic hasher
 
 			@param ctxt context.Context - calling context
+			@returns new key
 	*/
 	GetHasherKey(ctxt context.Context) (CryptoCSlice, error)
 
@@ -44,6 +45,37 @@ type Crypto interface {
 			@returns the hasher
 	*/
 	GetHasher(ctxt context.Context, key CryptoCSlice) (CryptoHasher, error)
+
+	// ------------------------------------------------------------------------------------
+	// PBKDF
+
+	/*
+		GetPBKDFSalt get a salt for use with PBKDF
+
+			@param ctxt context.Context - calling context
+			@returns new salt
+	*/
+	GetPBKDFSalt(ctxt context.Context) (CryptoCSlice, error)
+
+	/*
+		PBKDF perform password based key derivation
+
+			@param ctxt context.Context - calling context
+			@param passwd []byte - starting password
+			@param salt CryptoCSlice - associated salt
+			@param opsLimit uint64 - computation complexity limit
+			@param memLimit uint64 - memory complexity limit (in bytes)
+			@param outLength uint64 - target output key length
+			@returns the generated key
+	*/
+	PBKDF(
+		ctxt context.Context,
+		passwd []byte,
+		salt CryptoCSlice,
+		opsLimit uint64,
+		memLimit uint64,
+		outLength int,
+	) (CryptoCSlice, error)
 }
 
 // CryptoCSlice a CSlice specifically designed for use with crypto libraries. They
