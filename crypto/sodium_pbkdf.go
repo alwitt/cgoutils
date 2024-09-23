@@ -1,4 +1,4 @@
-package cgoutils
+package crypto
 
 // #include <stdlib.h>
 // #include <sodium.h>
@@ -49,7 +49,7 @@ GetPBKDFSalt get a salt for use with PBKDF
 	@param ctxt context.Context - calling context
 	@returns new salt
 */
-func (c *sodiumCrypto) GetPBKDFSalt(ctxt context.Context) (CryptoCSlice, error) {
+func (c *sodiumCrypto) GetPBKDFSalt(ctxt context.Context) (SecureCSlice, error) {
 	return c.GetRandomBuf(ctxt, C.crypto_pwhash_SALTBYTES)
 }
 
@@ -67,11 +67,11 @@ PBKDF perform password based key derivation
 func (c *sodiumCrypto) PBKDF(
 	ctxt context.Context,
 	passwd []byte,
-	salt CryptoCSlice,
+	salt SecureCSlice,
 	opsLimit uint64,
 	memLimit uint64,
 	outLength int,
-) (CryptoCSlice, error) {
+) (SecureCSlice, error) {
 	logTags := c.GetLogTagsForContext(ctxt)
 
 	// Verify the inputs

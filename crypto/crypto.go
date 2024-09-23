@@ -1,4 +1,4 @@
-package cgoutils
+package crypto
 
 import (
 	"context"
@@ -13,7 +13,7 @@ type Crypto interface {
 			@param length uint64 - length of the array
 			@return CSlice object
 	*/
-	AllocateCryptoCSlice(length int) (CryptoCSlice, error)
+	AllocateCryptoCSlice(length int) (SecureCSlice, error)
 
 	// ------------------------------------------------------------------------------------
 	// RNG
@@ -24,7 +24,7 @@ type Crypto interface {
 			@param ctxt context.Context - calling context
 			@param length int - the length of the buffer to fill
 	*/
-	GetRandomBuf(ctxt context.Context, length int) (CryptoCSlice, error)
+	GetRandomBuf(ctxt context.Context, length int) (SecureCSlice, error)
 
 	// ------------------------------------------------------------------------------------
 	// Hashing
@@ -35,7 +35,7 @@ type Crypto interface {
 			@param ctxt context.Context - calling context
 			@returns new key
 	*/
-	GetHasherKey(ctxt context.Context) (CryptoCSlice, error)
+	GetHasherKey(ctxt context.Context) (SecureCSlice, error)
 
 	/*
 		GetHasher get a libsodium cryptographic hasher
@@ -44,7 +44,7 @@ type Crypto interface {
 			@param key CryptoCSlice - for keyed hashing function
 			@returns the hasher
 	*/
-	GetHasher(ctxt context.Context, key CryptoCSlice) (CryptoHasher, error)
+	GetHasher(ctxt context.Context, key SecureCSlice) (Hasher, error)
 
 	// ------------------------------------------------------------------------------------
 	// PBKDF
@@ -55,7 +55,7 @@ type Crypto interface {
 			@param ctxt context.Context - calling context
 			@returns new salt
 	*/
-	GetPBKDFSalt(ctxt context.Context) (CryptoCSlice, error)
+	GetPBKDFSalt(ctxt context.Context) (SecureCSlice, error)
 
 	/*
 		PBKDF perform password based key derivation
@@ -71,16 +71,16 @@ type Crypto interface {
 	PBKDF(
 		ctxt context.Context,
 		passwd []byte,
-		salt CryptoCSlice,
+		salt SecureCSlice,
 		opsLimit uint64,
 		memLimit uint64,
 		outLength int,
-	) (CryptoCSlice, error)
+	) (SecureCSlice, error)
 }
 
-// CryptoCSlice a CSlice specifically designed for use with crypto libraries. They
+// SecureCSlice a CSlice specifically designed for use with crypto libraries. They
 // implement additional features.
-type CryptoCSlice interface {
+type SecureCSlice interface {
 	/*
 		Zero zero the contents of the buffer
 	*/
@@ -108,8 +108,8 @@ type CryptoCSlice interface {
 	GetCArray() (unsafe.Pointer, error)
 }
 
-// CryptoHasher a cryptographic hash generator
-type CryptoHasher interface {
+// Hasher a cryptographic hash generator
+type Hasher interface {
 	/*
 		Update update the hash compute with new data
 

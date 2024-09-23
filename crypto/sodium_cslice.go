@@ -1,4 +1,4 @@
-package cgoutils
+package crypto
 
 // #include <stdlib.h>
 // #include <sodium.h>

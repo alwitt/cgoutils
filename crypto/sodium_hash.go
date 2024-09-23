@@ -1,4 +1,4 @@
-package cgoutils
+package crypto
 
 // #include <stdlib.h>
 // #include <sodium.h>
@@ -14,8 +14,8 @@ import (
 
 // sodiumHasher libsodium hashing API warper
 type sodiumHasher struct {
-	state CryptoCSlice
-	key   CryptoCSlice
+	state SecureCSlice
+	key   SecureCSlice
 	hash  []byte
 }
 
@@ -24,7 +24,7 @@ GetHasherKey get a key for the cryptographic hasher
 
 	@param ctxt context.Context - calling context
 */
-func (c *sodiumCrypto) GetHasherKey(ctxt context.Context) (CryptoCSlice, error) {
+func (c *sodiumCrypto) GetHasherKey(ctxt context.Context) (SecureCSlice, error) {
 	return c.GetRandomBuf(ctxt, C.crypto_generichash_KEYBYTES)
 }
 
@@ -35,7 +35,7 @@ GetHasher get a libsodium cryptographic hasher
 	@param key CryptoCSlice - for keyed hashing function
 	@returns the hasher
 */
-func (c *sodiumCrypto) GetHasher(ctxt context.Context, key CryptoCSlice) (CryptoHasher, error) {
+func (c *sodiumCrypto) GetHasher(ctxt context.Context, key SecureCSlice) (Hasher, error) {
 	logTags := c.GetLogTagsForContext(ctxt)
 
 	state, err := c.AllocateCryptoCSlice(C.sizeof_crypto_generichash_state)

@@ -1,11 +1,11 @@
-package cgoutils_test
+package crypto_test
 
 import (
 	"context"
 	"encoding/base64"
 	"testing"
 
-	"github.com/alwitt/cgoutils"
+	"github.com/alwitt/cgoutils/crypto"
 	"github.com/apex/log"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +17,7 @@ func TestSodiumPBKDF(t *testing.T) {
 
 	utCtxt := context.Background()
 
-	sodium, err := cgoutils.NewSodiumCrypto(log.Fields{})
+	sodium, err := crypto.NewSodiumCrypto(log.Fields{})
 	assert.Nil(err)
 
 	// Case 0: basic usage
@@ -31,8 +31,8 @@ func TestSodiumPBKDF(t *testing.T) {
 			utCtxt,
 			[]byte(password),
 			salt,
-			cgoutils.SodiumPBKDFOpsLimitFast,
-			cgoutils.SodiumPBKDFMemLimitFast,
+			crypto.SodiumPBKDFOpsLimitFast,
+			crypto.SodiumPBKDFMemLimitFast,
 			32,
 		)
 		assert.Nil(err)
@@ -54,8 +54,8 @@ func TestSodiumPBKDF(t *testing.T) {
 			utCtxt,
 			[]byte(password),
 			salt,
-			cgoutils.SodiumPBKDFOpsLimitFast,
-			cgoutils.SodiumPBKDFMemLimitFast,
+			crypto.SodiumPBKDFOpsLimitFast,
+			crypto.SodiumPBKDFMemLimitFast,
 			32,
 		)
 		assert.Nil(err)
@@ -64,8 +64,8 @@ func TestSodiumPBKDF(t *testing.T) {
 			utCtxt,
 			[]byte(password),
 			salt,
-			cgoutils.SodiumPBKDFOpsLimitFast,
-			cgoutils.SodiumPBKDFMemLimitFast,
+			crypto.SodiumPBKDFOpsLimitFast,
+			crypto.SodiumPBKDFMemLimitFast,
 			32,
 		)
 		assert.Nil(err)
@@ -88,8 +88,8 @@ func TestSodiumPBKDF(t *testing.T) {
 			utCtxt,
 			[]byte(password),
 			salt,
-			cgoutils.SodiumPBKDFOpsLimitFast,
-			cgoutils.SodiumPBKDFMemLimitFast,
+			crypto.SodiumPBKDFOpsLimitFast,
+			crypto.SodiumPBKDFMemLimitFast,
 			32,
 		)
 		assert.Nil(err)
@@ -98,8 +98,8 @@ func TestSodiumPBKDF(t *testing.T) {
 			utCtxt,
 			[]byte(password),
 			salt,
-			cgoutils.SodiumPBKDFOpsLimitMed,
-			cgoutils.SodiumPBKDFMemLimitFast,
+			crypto.SodiumPBKDFOpsLimitMed,
+			crypto.SodiumPBKDFMemLimitFast,
 			32,
 		)
 		assert.Nil(err)

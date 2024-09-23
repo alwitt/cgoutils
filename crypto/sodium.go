@@ -1,4 +1,4 @@
-package cgoutils
+package crypto
 
 // #cgo CFLAGS: -Wall
 // #cgo pkg-config: libsodium
@@ -52,7 +52,7 @@ AllocateCryptoCSlice allocate a libsodium secure memory backed slice
 	@param length uint64 - length of the array
 	@return CSlice object
 */
-func (c *sodiumCrypto) AllocateCryptoCSlice(length int) (CryptoCSlice, error) {
+func (c *sodiumCrypto) AllocateCryptoCSlice(length int) (SecureCSlice, error) {
 	instance := &sodiumCSlice{core: nil}
 	return instance, instance.allocate(length)
 }

@@ -1,4 +1,4 @@
-package cgoutils
+package crypto
 
 // #include <stdlib.h>
 // #include <stdint.h>

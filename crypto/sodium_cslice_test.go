@@ -1,4 +1,4 @@
-package cgoutils_test
+package crypto_test
 
 import (
 	"encoding/json"
@@ -6,19 +6,22 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/alwitt/cgoutils"
+	"github.com/alwitt/cgoutils/crypto"
 	"github.com/apex/log"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBasicCSlice(t *testing.T) {
+func TestSodiumCSlice(t *testing.T) {
 	assert := assert.New(t)
 	log.SetLevel(log.DebugLevel)
 
+	sodium, err := crypto.NewSodiumCrypto(log.Fields{})
+	assert.Nil(err)
+
 	// Case 0: basic
 	{
-		uut, err := cgoutils.AllocateBasicCSlice(32)
+		uut, err := sodium.AllocateCryptoCSlice(32)
 		assert.Nil(err)
 
 		bufLen, err := uut.GetLen()
@@ -41,7 +44,7 @@ func TestBasicCSlice(t *testing.T) {
 		test, err := json.Marshal(&testStructure{A: uuid.New().String(), B: -42, C: true})
 		assert.Nil(err)
 
-		uut, err := cgoutils.AllocateBasicCSlice(64)
+		uut, err := sodium.AllocateCryptoCSlice(64)
 		assert.Nil(err)
 
 		// Copy the data over
@@ -72,7 +75,7 @@ func TestBasicCSlice(t *testing.T) {
 	// Case 2: allocated in a loop
 	{
 		for idx := 0; idx < 1000; idx++ {
-			uut, err := cgoutils.AllocateBasicCSlice(8192)
+			uut, err := sodium.AllocateCryptoCSlice(8192)
 			assert.Nil(err)
 			bufLen, err := uut.GetLen()
 			assert.Nil(err)
