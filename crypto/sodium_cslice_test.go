@@ -16,7 +16,7 @@ func TestSodiumCSlice(t *testing.T) {
 	assert := assert.New(t)
 	log.SetLevel(log.DebugLevel)
 
-	sodium, err := crypto.NewSodiumCrypto(log.Fields{})
+	sodium, err := crypto.NewCryptoEngine(log.Fields{})
 	assert.Nil(err)
 
 	// Case 0: basic

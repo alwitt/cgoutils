@@ -17,7 +17,7 @@ func TestSodiumHashing(t *testing.T) {
 
 	utCtxt := context.Background()
 
-	sodium, err := crypto.NewSodiumCrypto(log.Fields{})
+	sodium, err := crypto.NewCryptoEngine(log.Fields{})
 	assert.Nil(err)
 
 	// Case 0: basic usage

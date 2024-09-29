@@ -16,7 +16,7 @@ GetRandomBuf get a buffer of random data with the specified length
 	@param ctxt context.Context - calling context
 	@param length int - the length of the buffer to fill
 */
-func (c *sodiumCrypto) GetRandomBuf(ctxt context.Context, length int) (SecureCSlice, error) {
+func (c *sodiumCryptoEngine) GetRandomBuf(ctxt context.Context, length int) (SecureCSlice, error) {
 	logTags := c.GetLogTagsForContext(ctxt)
 	logTags["length"] = length
 

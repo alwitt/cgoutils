@@ -14,25 +14,25 @@ import (
 	"github.com/apex/log"
 )
 
-// sodiumCrypto `libsodium` wrapper client which implements Crypto
-type sodiumCrypto struct {
+// sodiumCryptoEngine `libsodium` wrapper client which implements Crypto
+type sodiumCryptoEngine struct {
 	goutils.Component
 }
 
 /*
-NewSodiumCrypto define a `libsodium` backed Crypto object.
+NewCryptoEngine define a `libsodium` backed Crypto object.
 
 	@returns new Crypto object
 */
-func NewSodiumCrypto(logTags log.Fields) (Crypto, error) {
-	instance := &sodiumCrypto{
+func NewCryptoEngine(logTags log.Fields) (Engine, error) {
+	instance := &sodiumCryptoEngine{
 		Component: goutils.Component{LogTags: logTags},
 	}
 	return instance, instance.init()
 }
 
 // init initialize `libsodium` for use
-func (c *sodiumCrypto) init() error {
+func (c *sodiumCryptoEngine) init() error {
 	logTags := c.GetLogTagsForContext(context.Background())
 
 	resp := int(C.sodium_init())
@@ -52,7 +52,7 @@ AllocateSecureCSlice allocate a libsodium secure memory backed slice
 	@param length uint64 - length of the array
 	@return CSlice object
 */
-func (c *sodiumCrypto) AllocateSecureCSlice(length int) (SecureCSlice, error) {
+func (c *sodiumCryptoEngine) AllocateSecureCSlice(length int) (SecureCSlice, error) {
 	instance := &sodiumCSlice{core: nil}
 	return instance, instance.allocate(length)
 }

@@ -5,8 +5,8 @@ import (
 	"unsafe"
 )
 
-// Crypto wrapper object for performing cryptographic operations on data
-type Crypto interface {
+// Engine wrapper object for performing cryptographic operations on data
+type Engine interface {
 	/*
 		AllocateSecureCSlice allocate a libsodium secure memory backed slice
 
