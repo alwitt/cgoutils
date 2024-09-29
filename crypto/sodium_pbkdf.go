@@ -105,7 +105,7 @@ func (c *sodiumCrypto) PBKDF(
 	}
 
 	// Generate output buffer
-	output, err := c.AllocateCryptoCSlice(outLength)
+	output, err := c.AllocateSecureCSlice(outLength)
 	if err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to allocate output buffer")
 		return nil, err

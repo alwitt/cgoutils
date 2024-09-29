@@ -21,7 +21,7 @@ func (c *sodiumCrypto) GetRandomBuf(ctxt context.Context, length int) (SecureCSl
 	logTags["length"] = length
 
 	// Prepare new buffer
-	newBuf, err := c.AllocateCryptoCSlice(length)
+	newBuf, err := c.AllocateSecureCSlice(length)
 	if err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to prepare buffer")
 		return nil, err

@@ -8,12 +8,12 @@ import (
 // Crypto wrapper object for performing cryptographic operations on data
 type Crypto interface {
 	/*
-		AllocateCryptoCSlice allocate a libsodium secure memory backed slice
+		AllocateSecureCSlice allocate a libsodium secure memory backed slice
 
 			@param length uint64 - length of the array
 			@return CSlice object
 	*/
-	AllocateCryptoCSlice(length int) (SecureCSlice, error)
+	AllocateSecureCSlice(length int) (SecureCSlice, error)
 
 	// ------------------------------------------------------------------------------------
 	// RNG

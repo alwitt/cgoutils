@@ -38,7 +38,7 @@ GetHasher get a libsodium cryptographic hasher
 func (c *sodiumCrypto) GetHasher(ctxt context.Context, key SecureCSlice) (Hasher, error) {
 	logTags := c.GetLogTagsForContext(ctxt)
 
-	state, err := c.AllocateCryptoCSlice(C.sizeof_crypto_generichash_state)
+	state, err := c.AllocateSecureCSlice(C.sizeof_crypto_generichash_state)
 	if err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to initialize buffer for hasher state")
 		return nil, err

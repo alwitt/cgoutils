@@ -21,7 +21,7 @@ func TestSodiumCSlice(t *testing.T) {
 
 	// Case 0: basic
 	{
-		uut, err := sodium.AllocateCryptoCSlice(32)
+		uut, err := sodium.AllocateSecureCSlice(32)
 		assert.Nil(err)
 
 		bufLen, err := uut.GetLen()
@@ -44,7 +44,7 @@ func TestSodiumCSlice(t *testing.T) {
 		test, err := json.Marshal(&testStructure{A: uuid.New().String(), B: -42, C: true})
 		assert.Nil(err)
 
-		uut, err := sodium.AllocateCryptoCSlice(64)
+		uut, err := sodium.AllocateSecureCSlice(64)
 		assert.Nil(err)
 
 		// Copy the data over
@@ -75,7 +75,7 @@ func TestSodiumCSlice(t *testing.T) {
 	// Case 2: allocated in a loop
 	{
 		for idx := 0; idx < 1000; idx++ {
-			uut, err := sodium.AllocateCryptoCSlice(8192)
+			uut, err := sodium.AllocateSecureCSlice(8192)
 			assert.Nil(err)
 			bufLen, err := uut.GetLen()
 			assert.Nil(err)
