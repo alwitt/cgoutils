@@ -2,6 +2,7 @@ package crypto
 
 import (
 	"context"
+	"crypto/ed25519"
 	"unsafe"
 )
 
@@ -76,6 +77,20 @@ type Engine interface {
 		memLimit uint64,
 		outLength int,
 	) (SecureCSlice, error)
+
+	// ------------------------------------------------------------------------------------
+	// ED25519 Public Key Crypto
+
+	/*
+		CreateEd25519CSR create an ED25519 private key and associated certificate signing request
+
+			@param ctxt context.Context - calling context
+			@param csrParams CertSigningRequestParams - CSR generation parameters
+			@returns the ed25519 private key and the associated certificate signing request
+	*/
+	CreateEd25519CSR(
+		ctxt context.Context, csrParams CertSigningRequestParams,
+	) (ed25519.PrivateKey, []byte, error)
 }
 
 // SecureCSlice a CSlice specifically designed for use with crypto libraries. They

@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  cgoutils_dev_cfssl:
+    container_name: cgoutils_dev_cfssl
+    restart: unless-stopped
+    hostname: "cfssl"
+    image: "cfssl/cfssl:v1.6.5"
+    command:
+      - serve
+      - -ca=/opt/cfssl/test_ca.pem
+      - -ca-key=/opt/cfssl/test_ca_key.pem
+      - -config=/opt/cfssl/cfssl_config.json
+      - -responder=/opt/cfssl/test_ca.pem
+      - -responder-key=/opt/cfssl/test_ca_key.pem
+      - -address=0.0.0.0
+      - -port=8888
+    volumes:
+      - ./docker:/opt/cfssl
+    ports:
+      - 127.0.0.1:8888:8888
+    networks:
+      - dev_network
+
+networks:
+  dev_network:
+    name: cgoutils_dev

@@ -10,8 +10,8 @@ import (
 
 func TestSodiumCryptoInit(t *testing.T) {
 	assert := assert.New(t)
-	_, err := crypto.NewCryptoEngine(log.Fields{})
+	_, err := crypto.NewEngine(log.Fields{})
 	assert.Nil(err)
-	_, err = crypto.NewCryptoEngine(log.Fields{})
+	_, err = crypto.NewEngine(log.Fields{})
 	assert.Nil(err)
 }

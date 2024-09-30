@@ -24,7 +24,7 @@ GetHasherKey get a key for the cryptographic hasher
 
 	@param ctxt context.Context - calling context
 */
-func (c *sodiumCryptoEngine) GetHasherKey(ctxt context.Context) (SecureCSlice, error) {
+func (c *engineImpl) GetHasherKey(ctxt context.Context) (SecureCSlice, error) {
 	return c.GetRandomBuf(ctxt, C.crypto_generichash_KEYBYTES)
 }
 
@@ -35,7 +35,7 @@ GetHasher get a libsodium cryptographic hasher
 	@param key CryptoCSlice - for keyed hashing function
 	@returns the hasher
 */
-func (c *sodiumCryptoEngine) GetHasher(ctxt context.Context, key SecureCSlice) (Hasher, error) {
+func (c *engineImpl) GetHasher(ctxt context.Context, key SecureCSlice) (Hasher, error) {
 	logTags := c.GetLogTagsForContext(ctxt)
 
 	state, err := c.AllocateSecureCSlice(C.sizeof_crypto_generichash_state)

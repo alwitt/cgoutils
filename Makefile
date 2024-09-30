@@ -1,3 +1,4 @@
+BASE_DIR = $(realpath .)
 SHELL = bash
 
 all: lint
@@ -20,6 +21,21 @@ test: .prepare ## Run unittests
 .PHONY: one-test
 one-test: .prepare ## Run one unittest
 	go test --count 1 -v -timeout 30s -run ^$(FILTER) github.com/alwitt/cgoutils/...
+
+.PHONY: prep-cfssl
+prep-cfssl: .prepare ## Prepare CA certficate for use by development cfssl
+	mkdir -vp tmp/test_ca
+	cfssl genkey -initca docker/cfssl_ca.csr.json | tee tmp/test_ca/new_ca.json
+	cat tmp/test_ca/new_ca.json | jq '.cert' -r | tee docker/test_ca.pem
+	cat tmp/test_ca/new_ca.json | jq '.key' -r | tee docker/test_ca_key.pem
+
+.PHONY: up
+up: ## Prepare the docker stack
+	@docker compose -f docker/docker-compose.yaml --project-directory $(BASE_DIR) up -d
+
+.PHONY: down
+down: ## Take down docker stack
+	@docker compose -f docker/docker-compose.yaml --project-directory $(BASE_DIR) down
 
 .prepare: ## Prepare the project for local development
 	@pip3 install --user pre-commit

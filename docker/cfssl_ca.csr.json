@@ -1,0 +1,18 @@
+{
+  "CN": "testing.local.dev",
+  "hosts": [
+      "testing.local.dev"
+  ],
+  "key": {
+      "algo": "ed25519"
+  },
+  "ca": {
+    "expiry": "262800h",
+    "pathlen": 2
+  },
+  "names": [
+      {
+          "C": "US"
+      }
+  ]
+}

@@ -14,7 +14,7 @@ func TestSodiumRandomBuf(t *testing.T) {
 	assert := assert.New(t)
 	log.SetLevel(log.DebugLevel)
 
-	sodium, err := crypto.NewCryptoEngine(log.Fields{})
+	sodium, err := crypto.NewEngine(log.Fields{})
 	assert.Nil(err)
 
 	uut, err := sodium.GetRandomBuf(context.Background(), 64)

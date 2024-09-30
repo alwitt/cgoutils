@@ -9,8 +9,26 @@ import (
 	"runtime"
 	"unsafe"
 
+	"github.com/alwitt/goutils"
 	"github.com/apex/log"
 )
+
+// engineImpl implements Engine interface
+type engineImpl struct {
+	goutils.Component
+}
+
+/*
+NewEngine define a new Engine object.
+
+	@returns new Engine object
+*/
+func NewEngine(logTags log.Fields) (Engine, error) {
+	instance := &engineImpl{
+		Component: goutils.Component{LogTags: logTags},
+	}
+	return instance, instance.init()
+}
 
 // CSlice a slice object backed by "void*" array allocated in C side.
 //

@@ -1,0 +1,52 @@
+{
+  "signing": {
+    "default": {
+      "expiry": "17520h",
+      "usages": []
+    },
+    "profiles": {
+      "intermediate": {
+        "expiry": "262800h",
+        "usages": [
+          "signing",
+          "key encipherment",
+          "cert sign",
+          "crl sign"
+        ],
+        "ca_constraint": {
+          "is_ca": true,
+          "max_path_len": 1
+        }
+      },
+      "ocsp": {
+        "usages": [
+          "digital signature",
+          "ocsp signing"
+        ],
+        "expiry": "17520h"
+      },
+      "server": {
+        "expiry": "17520h",
+        "usages": [
+          "signing",
+          "key encipherment",
+          "server auth"
+        ]
+      },
+      "client": {
+        "expiry": "17520h",
+        "usages": [
+          "signing",
+          "key encipherment",
+          "client auth"
+        ]
+      }
+    }
+  },
+  "auth_keys": {
+    "auth-key": {
+      "key": "7ce72cf4a1a65097839357b007081100",
+      "type": "standard"
+    }
+  }
+}

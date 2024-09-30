@@ -49,7 +49,7 @@ GetPBKDFSalt get a salt for use with PBKDF
 	@param ctxt context.Context - calling context
 	@returns new salt
 */
-func (c *sodiumCryptoEngine) GetPBKDFSalt(ctxt context.Context) (SecureCSlice, error) {
+func (c *engineImpl) GetPBKDFSalt(ctxt context.Context) (SecureCSlice, error) {
 	return c.GetRandomBuf(ctxt, C.crypto_pwhash_SALTBYTES)
 }
 
@@ -64,7 +64,7 @@ PBKDF perform password based key derivation
 	@param outLength uint64 - target output key length
 	@returns the generated key
 */
-func (c *sodiumCryptoEngine) PBKDF(
+func (c *engineImpl) PBKDF(
 	ctxt context.Context,
 	passwd []byte,
 	salt SecureCSlice,
