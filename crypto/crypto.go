@@ -3,6 +3,7 @@ package crypto
 import (
 	"context"
 	"crypto/ed25519"
+	"crypto/x509"
 	"unsafe"
 )
 
@@ -82,15 +83,33 @@ type Engine interface {
 	// ED25519 Public Key Crypto
 
 	/*
-		CreateEd25519CSR create an ED25519 private key and associated certificate signing request
+		CreateED25519CSR create an ED25519 private key and associated certificate signing request
 
 			@param ctxt context.Context - calling context
 			@param csrParams CertSigningRequestParams - CSR generation parameters
 			@returns the ed25519 private key and the associated certificate signing request
 	*/
-	CreateEd25519CSR(
+	CreateED25519CSR(
 		ctxt context.Context, csrParams CertSigningRequestParams,
 	) (ed25519.PrivateKey, []byte, error)
+
+	/*
+		ParseCertificateFromPEM parse a PEM block for a certificate
+
+			@param ctxt context.Context - calling context
+			@param certPem string - the PEM string
+			@returns the parsed certificate
+	*/
+	ParseCertificateFromPEM(ctxt context.Context, certPem string) (*x509.Certificate, error)
+
+	/*
+		ReadED25519PublicKeyFromCert read the ED25519 public from certificate
+
+			@param ctxt context.Context - calling context
+			@param cert *x509.Certificate - certificate
+			@returns the ED25519 public key
+	*/
+	ReadED25519PublicKeyFromCert(_ context.Context, cert *x509.Certificate) (ed25519.PublicKey, error)
 }
 
 // SecureCSlice a CSlice specifically designed for use with crypto libraries. They

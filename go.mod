@@ -5,7 +5,11 @@ go 1.22
 require (
 	github.com/alwitt/goutils v0.6.4
 	github.com/apex/log v1.9.0
+	github.com/go-playground/validator/v10 v10.14.1
+	github.com/go-resty/resty/v2 v2.7.0
 	github.com/google/uuid v1.3.0
+	github.com/jarcoal/httpmock v1.3.0
+	github.com/oklog/ulid/v2 v2.1.0
 	github.com/stretchr/testify v1.9.0
 )
 
@@ -21,8 +25,6 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-playground/validator/v10 v10.14.1 // indirect
-	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect

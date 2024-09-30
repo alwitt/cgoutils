@@ -21,11 +21,17 @@ type engineImpl struct {
 /*
 NewEngine define a new Engine object.
 
+	@param logTags log.Fields - component log tags
 	@returns new Engine object
 */
 func NewEngine(logTags log.Fields) (Engine, error) {
 	instance := &engineImpl{
-		Component: goutils.Component{LogTags: logTags},
+		Component: goutils.Component{
+			LogTags: logTags,
+			LogTagModifiers: []goutils.LogMetadataModifier{
+				goutils.ModifyLogMetadataByRestRequestParam,
+			},
+		},
 	}
 	return instance, instance.init()
 }
