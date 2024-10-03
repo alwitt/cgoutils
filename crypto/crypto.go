@@ -110,6 +110,41 @@ type Engine interface {
 			@returns the ED25519 public key
 	*/
 	ReadED25519PublicKeyFromCert(_ context.Context, cert *x509.Certificate) (ed25519.PublicKey, error)
+
+	// ------------------------------------------------------------------------------------
+	// ECDH
+
+	/*
+		NewECDHKeyPair generate a new ECDH key pair
+
+			@param ctxt context.Context - calling context
+			@returns the generated key pair
+	*/
+	NewECDHKeyPair(ctxt context.Context) (ECDHKeyPair, error)
+
+	/*
+		ComputeClientECDHSessionKeys run client side ECDH and generate client side ECDH session keys
+
+			@param ctxt context.Context - calling context
+			@param clientKeys ECDHKeyPair - client ECDH key pair
+			@param serverPublic SecureCSlice - server public key
+			@returns client side ECDH session keys
+	*/
+	ComputeClientECDHSessionKeys(
+		ctxt context.Context, clientKeys ECDHKeyPair, serverPublic SecureCSlice,
+	) (ECDHSessionKeys, error)
+
+	/*
+		ComputeServerECDHSessionKeys run server side ECDH and generate server side ECDH session keys
+
+			@param ctxt context.Context - calling context
+			@param serverKeys ECDHKeyPair - server ECDH key pair
+			@param clientPublic SecureCSlice - client public key
+			@returns server side ECDH session keys
+	*/
+	ComputeServerECDHSessionKeys(
+		ctxt context.Context, serverKeys ECDHKeyPair, clientPublic SecureCSlice,
+	) (ECDHSessionKeys, error)
 }
 
 // SecureCSlice a CSlice specifically designed for use with crypto libraries. They
