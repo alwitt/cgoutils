@@ -5,7 +5,9 @@ package crypto
 import "C"
 import (
 	"fmt"
+	"math/big"
 	"runtime"
+	"slices"
 	"unsafe"
 
 	"github.com/apex/log"
@@ -125,4 +127,43 @@ func (b *sodiumCSlice) GetCArray() (unsafe.Pointer, error) {
 		return nil, fmt.Errorf("slice is not allocated")
 	}
 	return unsafe.Pointer(b.core), nil
+}
+
+/*
+IncrementValue treat the content of the buffer as a large number, and increment by one
+*/
+func (b *sodiumCSlice) IncrementValue() error {
+	if b.core == nil {
+		return fmt.Errorf("slice is not allocated")
+	}
+
+	C.sodium_increment((*C.uchar)(unsafe.Pointer(b.core)), C.size_t(b.length))
+
+	return nil
+}
+
+/*
+AddValue treat the content of the buffer as a large number, and add another value to it.
+
+	@param value *big.Int - the value to add to current content of the buffer
+*/
+func (b *sodiumCSlice) AddValue(value *big.Int) error {
+	if b.core == nil {
+		return fmt.Errorf("slice is not allocated")
+	}
+
+	valueBuf := make([]byte, b.length)
+
+	// Convert the large int into slice, which is zero-extended big-endian
+	value.FillBytes(valueBuf)
+	// Convert to little endian
+	slices.Reverse(valueBuf)
+
+	C.sodium_add(
+		(*C.uchar)(unsafe.Pointer(b.core)),
+		(*C.uchar)(unsafe.Pointer(&valueBuf[0])),
+		C.size_t(b.length),
+	)
+
+	return nil
 }

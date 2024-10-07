@@ -2,6 +2,7 @@ package crypto_test
 
 import (
 	"encoding/json"
+	"math/big"
 	"runtime"
 	"testing"
 	"unsafe"
@@ -85,6 +86,48 @@ func TestSodiumCSlice(t *testing.T) {
 			assert.NotNil(buf)
 			assert.Len(buf, 8192)
 		}
+	}
+
+	// Case 3: increment value by one
+	{
+		uut, err := sodium.AllocateSecureCSlice(4)
+		assert.Nil(err)
+		buf, err := uut.GetSlice()
+		assert.Nil(err)
+		assert.Len(buf, 4)
+		buf[0] = 0xff
+		buf[1] = 0xff
+		buf[2] = 0xff
+		buf[3] = 0x7f
+		buf, err = uut.GetSlice()
+		assert.Nil(err)
+		assert.EqualValues([]byte{0xff, 0xff, 0xff, 0x7f}, buf)
+		assert.Nil(uut.IncrementValue())
+		buf, err = uut.GetSlice()
+		assert.Nil(err)
+		assert.EqualValues([]byte{0, 0, 0, 0x80}, buf)
+	}
+
+	// Case 4: add value to slice
+	{
+		uut, err := sodium.AllocateSecureCSlice(4)
+		assert.Nil(err)
+		buf, err := uut.GetSlice()
+		assert.Nil(err)
+		assert.Len(buf, 4)
+		buf[0] = 0x00
+		buf[1] = 0x00
+		buf[2] = 0x00
+		buf[3] = 0x00
+		buf, err = uut.GetSlice()
+		assert.Nil(err)
+		assert.EqualValues([]byte{0, 0, 0, 0}, buf)
+		assert.NotPanics(func() {
+			assert.Nil(uut.AddValue(big.NewInt(4310)))
+		})
+		buf, err = uut.GetSlice()
+		assert.Nil(err)
+		assert.EqualValues([]byte{0xd6, 0x10, 0, 0}, buf)
 	}
 
 	// Trigger GC

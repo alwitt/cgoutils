@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/x509"
+	"math/big"
 	"unsafe"
 )
 
@@ -145,6 +146,18 @@ type Engine interface {
 	ComputeServerECDHSessionKeys(
 		ctxt context.Context, serverKeys ECDHKeyPair, clientPublic SecureCSlice,
 	) (ECDHSessionKeys, error)
+
+	// ------------------------------------------------------------------------------------
+	// AEAD
+
+	/*
+		GetAEAD define a new AEAD instance
+
+			@param ctxt context.Context - calling context
+			@param aeadType AEADTypeEnum - the AEAD implementation to use
+			@returns the AEAD generator
+	*/
+	GetAEAD(ctxt context.Context, aeadType AEADTypeEnum) (AEAD, error)
 }
 
 // SecureCSlice a CSlice specifically designed for use with crypto libraries. They
@@ -175,6 +188,18 @@ type SecureCSlice interface {
 			@returns the C slice
 	*/
 	GetCArray() (unsafe.Pointer, error)
+
+	/*
+		IncrementValue treat the content of the buffer as a large number, and increment by one
+	*/
+	IncrementValue() error
+
+	/*
+		AddValue treat the content of the buffer as a large number, and add another value to it.
+
+			@param value *big.Int - the value to add to current content of the buffer
+	*/
+	AddValue(value *big.Int) error
 }
 
 // Hasher a cryptographic hash generator
@@ -195,4 +220,96 @@ type Hasher interface {
 		GetHash query the computed hash
 	*/
 	GetHash() []byte
+}
+
+// AEAD a AEAD engine
+type AEAD interface {
+	/*
+		ExpectedKeyLen get the expected encryption key len
+
+			@returns expected encryption key len
+	*/
+	ExpectedKeyLen() int
+
+	/*
+		SetKey set the encryption key
+
+			@param key SecureCSlice - the encryption key
+	*/
+	SetKey(key SecureCSlice) error
+
+	/*
+		ExpectedNonceLen get the expected nonce len
+
+			@returns expected nonce len
+	*/
+	ExpectedNonceLen() int
+
+	/*
+		SetNonce set the nonce
+
+			@param nonce SecureCSlice - the nonce
+	*/
+	SetNonce(nonce SecureCSlice) error
+
+	/*
+		ResetNonce reset the AEAD nonce value
+
+			@param ctxt context.Context - calling context
+	*/
+	ResetNonce(ctxt context.Context) error
+
+	/*
+		Type get the AEAD implementation
+
+			@returns AEAD type
+	*/
+	Type() AEADTypeEnum
+
+	/*
+		Nonce return the current nonce value
+
+			@returns the nonce
+	*/
+	Nonce() SecureCSlice
+
+	/*
+		ExpectedCipherLen compute the expected cipher text len given the plain text length
+
+			@returns the expected cipher text length
+	*/
+	ExpectedCipherLen(plainTextLen int64) int64
+
+	/*
+		ExpectedPlainTextLen compute the expected plain text len given the cipher text length
+
+			@returns the expected plain text length
+	*/
+	ExpectedPlainTextLen(cipherLen int64) int64
+
+	/*
+		Seal encrypt plain text with associated additional data.
+
+			@param ctxt context.Context - calling context
+			@param msgIndex int64 - the message index within a stream
+			@param plainText []byte - the plain text to encrypt
+			@param additional []byte - the associated additional data
+			@param cipherText []byte - the output buffer for the cipher text
+	*/
+	Seal(
+		ctxt context.Context, msgIndex int64, plainText []byte, additional []byte, cipherText []byte,
+	) error
+
+	/*
+		Unseal decrypt cipher text with associated additional data.
+
+			@param ctxt context.Context - calling context
+			@param msgIndex int64 - the message index within a stream
+			@param cipherText []byte - the cipher text to decrypt
+			@param additional []byte - the associated additional data
+			@param plainText []byte - the output buffer for plain text
+	*/
+	Unseal(
+		ctxt context.Context, msgIndex int64, cipherText []byte, additional []byte, plainText []byte,
+	) error
 }
