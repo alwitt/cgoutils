@@ -1,4 +1,4 @@
-package crypto_test
+package common_test
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"unsafe"
 
-	"github.com/alwitt/cgoutils/crypto"
+	"github.com/alwitt/cgoutils/common"
 	"github.com/apex/log"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +18,7 @@ func TestBasicCSlice(t *testing.T) {
 
 	// Case 0: basic
 	{
-		uut, err := crypto.AllocateBasicCSlice(32)
+		uut, err := common.AllocateBasicCSlice(32)
 		assert.Nil(err)
 
 		bufLen, err := uut.GetLen()
@@ -41,7 +41,7 @@ func TestBasicCSlice(t *testing.T) {
 		test, err := json.Marshal(&testStructure{A: uuid.New().String(), B: -42, C: true})
 		assert.Nil(err)
 
-		uut, err := crypto.AllocateBasicCSlice(64)
+		uut, err := common.AllocateBasicCSlice(64)
 		assert.Nil(err)
 
 		// Copy the data over
@@ -71,8 +71,9 @@ func TestBasicCSlice(t *testing.T) {
 
 	// Case 2: allocated in a loop
 	{
+		log.SetLevel(log.InfoLevel)
 		for idx := 0; idx < 1000; idx++ {
-			uut, err := crypto.AllocateBasicCSlice(8192)
+			uut, err := common.AllocateBasicCSlice(8192)
 			assert.Nil(err)
 			bufLen, err := uut.GetLen()
 			assert.Nil(err)

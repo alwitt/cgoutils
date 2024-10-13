@@ -73,22 +73,7 @@ func TestSodiumCSlice(t *testing.T) {
 		}
 	}
 
-	// Case 2: allocated in a loop
-	{
-		for idx := 0; idx < 1000; idx++ {
-			uut, err := sodium.AllocateSecureCSlice(8192)
-			assert.Nil(err)
-			bufLen, err := uut.GetLen()
-			assert.Nil(err)
-			assert.Equal(8192, bufLen)
-			buf, err := uut.GetSlice()
-			assert.Nil(err)
-			assert.NotNil(buf)
-			assert.Len(buf, 8192)
-		}
-	}
-
-	// Case 3: increment value by one
+	// Case 2: increment value by one
 	{
 		uut, err := sodium.AllocateSecureCSlice(4)
 		assert.Nil(err)
@@ -108,7 +93,7 @@ func TestSodiumCSlice(t *testing.T) {
 		assert.EqualValues([]byte{0, 0, 0, 0x80}, buf)
 	}
 
-	// Case 4: add value to slice
+	// Case 3: add value to slice
 	{
 		uut, err := sodium.AllocateSecureCSlice(4)
 		assert.Nil(err)
@@ -128,6 +113,22 @@ func TestSodiumCSlice(t *testing.T) {
 		buf, err = uut.GetSlice()
 		assert.Nil(err)
 		assert.EqualValues([]byte{0xd6, 0x10, 0, 0}, buf)
+	}
+
+	// Case 4: allocated in a loop
+	{
+		log.SetLevel(log.InfoLevel)
+		for idx := 0; idx < 1000; idx++ {
+			uut, err := sodium.AllocateSecureCSlice(8192)
+			assert.Nil(err)
+			bufLen, err := uut.GetLen()
+			assert.Nil(err)
+			assert.Equal(8192, bufLen)
+			buf, err := uut.GetSlice()
+			assert.Nil(err)
+			assert.NotNil(buf)
+			assert.Len(buf, 8192)
+		}
 	}
 
 	// Trigger GC
