@@ -9,11 +9,26 @@ import (
 	"unsafe"
 )
 
-// sodiumXChaCha20Poly1305 implements AEAD using XChaCha20-Poly1305
-type sodiumXChaCha20Poly1305 struct {
+// sodiumAES256GCM implements AEAD using AES256-GCM
+type sodiumAES256GCM struct {
 	core  Engine
 	nonce SecureCSlice
 	key   SecureCSlice
+}
+
+/*
+newAES256GCM define a AES256-GCM based AEAD
+
+	@param ctxt context.Context - calling context
+	@returns new AES256-GCM based AEAD generator
+*/
+func (c *engineImpl) newAES256GCM(_ context.Context) (*sodiumAES256GCM, error) {
+	// Verify the system support AES256-GCM
+	if C.crypto_aead_aes256gcm_is_available() == 0 {
+		return nil, fmt.Errorf("system does not support AES256-GCM in hardware")
+	}
+
+	return &sodiumAES256GCM{core: c}, nil
 }
 
 /*
@@ -21,17 +36,8 @@ ExpectedKeyLen get the expected encryption key len
 
 	@returns expected encryption key len
 */
-func (a *sodiumXChaCha20Poly1305) ExpectedKeyLen() int {
-	return C.crypto_aead_xchacha20poly1305_ietf_KEYBYTES
-}
-
-/*
-ExpectedNonceLen get the expected nonce len
-
-	@returns expected nonce len
-*/
-func (a *sodiumXChaCha20Poly1305) ExpectedNonceLen() int {
-	return C.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES
+func (a *sodiumAES256GCM) ExpectedKeyLen() int {
+	return C.crypto_aead_aes256gcm_KEYBYTES
 }
 
 /*
@@ -39,12 +45,12 @@ SetKey set the encryption key
 
 	@param key SecureCSlice - the encryption key
 */
-func (a *sodiumXChaCha20Poly1305) SetKey(key SecureCSlice) error {
+func (a *sodiumAES256GCM) SetKey(key SecureCSlice) error {
 	if len, err := key.GetLen(); err != nil {
 		return err
 	} else if len != a.ExpectedKeyLen() {
 		return fmt.Errorf(
-			"incorrect key length for XChaCha20-Poly1305: %d =/= %d", len, a.ExpectedKeyLen(),
+			"incorrect key length for AES256-GCM: %d =/= %d", len, a.ExpectedKeyLen(),
 		)
 	}
 	a.key = key
@@ -52,16 +58,25 @@ func (a *sodiumXChaCha20Poly1305) SetKey(key SecureCSlice) error {
 }
 
 /*
+ExpectedNonceLen get the expected nonce len
+
+	@returns expected nonce len
+*/
+func (a *sodiumAES256GCM) ExpectedNonceLen() int {
+	return C.crypto_aead_aes256gcm_NPUBBYTES
+}
+
+/*
 SetNonce set the nonce
 
 	@param nonce SecureCSlice - the nonce
 */
-func (a *sodiumXChaCha20Poly1305) SetNonce(nonce SecureCSlice) error {
+func (a *sodiumAES256GCM) SetNonce(nonce SecureCSlice) error {
 	if len, err := nonce.GetLen(); err != nil {
 		return err
 	} else if len != a.ExpectedNonceLen() {
 		return fmt.Errorf(
-			"incorrect nonce length for XChaCha20-Poly1305: %d =/= %d", len, a.ExpectedNonceLen(),
+			"incorrect nonce length for AES256-GCM: %d =/= %d", len, a.ExpectedNonceLen(),
 		)
 	}
 	a.nonce = nonce
@@ -73,7 +88,7 @@ ResetNonce reset the AEAD nonce value
 
 	@param ctxt context.Context - calling context
 */
-func (a *sodiumXChaCha20Poly1305) ResetNonce(ctxt context.Context) error {
+func (a *sodiumAES256GCM) ResetNonce(ctxt context.Context) error {
 	nonce, err := a.core.GetRandomBuf(ctxt, a.ExpectedNonceLen())
 	if err != nil {
 		return err
@@ -87,8 +102,8 @@ Type get the AEAD implementation
 
 	@returns AEAD type
 */
-func (a *sodiumXChaCha20Poly1305) Type() AEADTypeEnum {
-	return AEADTypeXChaCha20Poly1305
+func (a *sodiumAES256GCM) Type() AEADTypeEnum {
+	return AEADTypeAes256gcm
 }
 
 /*
@@ -96,7 +111,7 @@ Nonce return the current nonce value
 
 	@returns the nonce
 */
-func (a *sodiumXChaCha20Poly1305) Nonce() SecureCSlice {
+func (a *sodiumAES256GCM) Nonce() SecureCSlice {
 	return a.nonce
 }
 
@@ -105,8 +120,8 @@ ExpectedCipherLen compute the expected cipher text len given the plain text leng
 
 	@returns the expected cipher text length
 */
-func (a *sodiumXChaCha20Poly1305) ExpectedCipherLen(plainTextLen int64) int64 {
-	return plainTextLen + C.crypto_aead_xchacha20poly1305_ietf_ABYTES
+func (a *sodiumAES256GCM) ExpectedCipherLen(plainTextLen int64) int64 {
+	return plainTextLen + C.crypto_aead_aes256gcm_ABYTES
 }
 
 /*
@@ -114,8 +129,8 @@ ExpectedPlainTextLen compute the expected plain text len given the cipher text l
 
 	@returns the expected plain text length
 */
-func (a *sodiumXChaCha20Poly1305) ExpectedPlainTextLen(cipherLen int64) int64 {
-	return cipherLen - C.crypto_aead_xchacha20poly1305_ietf_ABYTES
+func (a *sodiumAES256GCM) ExpectedPlainTextLen(cipherLen int64) int64 {
+	return cipherLen - C.crypto_aead_aes256gcm_ABYTES
 }
 
 /*
@@ -127,8 +142,8 @@ Seal encrypt plain text with associated additional data.
 	@param additional []byte - the associated additional data
 	@param cipherText []byte - the output buffer for the cipher text
 */
-func (a *sodiumXChaCha20Poly1305) Seal(
-	_ context.Context, msgIndex int64, plainText []byte, additional []byte, cipherText []byte,
+func (a *sodiumAES256GCM) Seal(
+	ctxt context.Context, msgIndex int64, plainText []byte, additional []byte, cipherText []byte,
 ) error {
 	plainLen := int64(len(plainText))
 	additionalLen := int64(len(additional))
@@ -167,7 +182,7 @@ func (a *sodiumXChaCha20Poly1305) Seal(
 	}
 
 	// Encrypt the msg with additional data
-	resp := C.crypto_aead_xchacha20poly1305_ietf_encrypt(
+	resp := C.crypto_aead_aes256gcm_encrypt(
 		(*C.uchar)(cipherTextCore),
 		(*C.ulonglong)(nil),
 		(*C.uchar)(plainTextPtr),
@@ -195,8 +210,8 @@ Unseal decrypt cipher text with associated additional data.
 	@param additional []byte - the associated additional data
 	@param plainText []byte - the output buffer for plain text
 */
-func (a *sodiumXChaCha20Poly1305) Unseal(
-	_ context.Context, msgIndex int64, cipherText []byte, additional []byte, plainText []byte,
+func (a *sodiumAES256GCM) Unseal(
+	ctxt context.Context, msgIndex int64, cipherText []byte, additional []byte, plainText []byte,
 ) error {
 	cipherLen := int64(len(cipherText))
 	additionalLen := int64(len(additional))
@@ -235,7 +250,7 @@ func (a *sodiumXChaCha20Poly1305) Unseal(
 	}
 
 	// Decrypt the msg with additional data
-	resp := C.crypto_aead_xchacha20poly1305_ietf_decrypt(
+	resp := C.crypto_aead_aes256gcm_decrypt(
 		(*C.uchar)(plainTextPtr),
 		(*C.ulonglong)(nil),
 		(*C.uchar)(nil),
