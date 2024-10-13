@@ -29,6 +29,9 @@ jobs:
   golangci-lint:
     runs-on: ubuntu-latest
 
+    container:
+      image: alwitt/cicd-support:cgoutils
+
     steps:
       - uses: actions/checkout@v4
 
@@ -45,6 +48,9 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+
+    container:
+      image: alwitt/cicd-support:cgoutils
 
     steps:
       - uses: actions/checkout@v4
