@@ -5,6 +5,10 @@ import (
 	"os"
 )
 
+func runningInCICD() bool {
+	return os.Getenv("UT_IN_CICD") != ""
+}
+
 func getTestCFSSLBaseURL() (*url.URL, error) {
 	urlStr := os.Getenv("UT_CFSSL_BASE_URL")
 	if urlStr == "" {

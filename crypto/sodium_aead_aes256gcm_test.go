@@ -262,6 +262,11 @@ func TestSodiumAEADAES256GCMThroughPut(t *testing.T) {
 	assert := assert.New(t)
 	log.SetLevel(log.InfoLevel)
 
+	if runningInCICD() {
+		log.Debug("Skip throughput testing in CICD")
+		return
+	}
+
 	utCtxt := context.Background()
 
 	sodium, err := crypto.NewEngine(log.Fields{})

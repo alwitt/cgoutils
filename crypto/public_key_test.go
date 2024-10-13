@@ -75,6 +75,11 @@ func TestCertSigningEndToEnd(t *testing.T) {
 	assert := assert.New(t)
 	log.SetLevel(log.DebugLevel)
 
+	if runningInCICD() {
+		log.Debug("Skip live CFSSL testing in CICD")
+		return
+	}
+
 	utCtxt := context.Background()
 
 	engine, err := crypto.NewEngine(log.Fields{"component": "crypto-engine"})

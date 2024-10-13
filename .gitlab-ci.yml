@@ -1,0 +1,15 @@
+image: golang:1.22.1
+
+stages:
+  - test
+
+cicd:
+  stage: test
+
+  variables:
+    UT_IN_CICD: 'true'
+
+  script:
+    - go fmt $(go list ./...)
+    - go vet $(go list ./...)
+    - go test --count 1 -v -timeout 600s -short ./...
