@@ -37,6 +37,10 @@ up: ## Prepare the docker stack
 down: ## Take down docker stack
 	@docker compose -f docker/docker-compose.yaml --project-directory $(BASE_DIR) down
 
+.PHONY: cicd-support
+cicd-support: ## Build CICD support docker image
+	@docker build -t "alwitt/cicd-support:cgoutils" -f docker/Dockerfile.cicd-support .
+
 .prepare: ## Prepare the project for local development
 	@pip3 install --user pre-commit
 	@pre-commit install
