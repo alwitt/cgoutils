@@ -82,6 +82,17 @@ type Engine interface {
 	// ED25519 Public Key Crypto
 
 	/*
+		CreateED25519SelfSignedCA create an ED25519 self-signed certificate authority
+
+			@param ctxt context.Context - calling context
+			@param caParams CertParams - CA cert generation parameters
+			@returns the ed25519 private key and the associated certificate
+	*/
+	CreateED25519SelfSignedCA(
+		ctxt context.Context, caParams CertParams,
+	) (ed25519.PrivateKey, []byte, error)
+
+	/*
 		CreateED25519CSR create an ED25519 private key and associated certificate signing request
 
 			@param ctxt context.Context - calling context
@@ -108,7 +119,9 @@ type Engine interface {
 			@param cert *x509.Certificate - certificate
 			@returns the ED25519 public key
 	*/
-	ReadED25519PublicKeyFromCert(_ context.Context, cert *x509.Certificate) (ed25519.PublicKey, error)
+	ReadED25519PublicKeyFromCert(
+		ctxt context.Context, cert *x509.Certificate,
+	) (ed25519.PublicKey, error)
 
 	// ------------------------------------------------------------------------------------
 	// ECDH

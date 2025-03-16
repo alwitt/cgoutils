@@ -8,12 +8,83 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
+	"math/big"
 	"net"
 	"net/url"
 	"reflect"
+	"time"
 
 	"github.com/apex/log"
 )
+
+// CertParams set of parameters needed when defining a certificate
+type CertParams struct {
+	// SerialNumber cert serial number
+	SerialNumber *big.Int
+	// Subject certificate subject
+	Subject pkix.Name
+	// DNSNames DNS subject alt name
+	DNSNames []string
+	// EmailAddresses Email subject alt name
+	EmailAddresses []string
+	// IPAddresses IP subject alt name
+	IPAddresses []net.IP
+	// URIs URI subject all name
+	URIs []*url.URL
+	// NotBefore this cert is valid after this time
+	NotBefore time.Time
+	// NotAfter this cert is invalid after this time
+	NotAfter time.Time
+	// KeyUsage primary purpose of the certificate
+	KeyUsage x509.KeyUsage
+	// ExtKeyUsage additional usage of the certificate
+	ExtKeyUsage []x509.ExtKeyUsage
+}
+
+/*
+CreateED25519SelfSignedCA create an ED25519 self-signed certificate authority
+
+	@param ctxt context.Context - calling context
+	@param caParams CertParams - CA cert generation parameters
+	@returns the ed25519 private key and the associated certificate
+*/
+func (c *engineImpl) CreateED25519SelfSignedCA(
+	ctxt context.Context, caParams CertParams,
+) (ed25519.PrivateKey, []byte, error) {
+	logTags := c.GetLogTagsForContext(ctxt)
+
+	// Generate a new ed25519 key pair
+	pubKey, privKey, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		log.WithError(err).WithFields(logTags).Error("Failed to generate ED25519 key pair")
+		return nil, nil, err
+	}
+
+	// Define certificate parameters
+	certSpec := &x509.Certificate{
+		SerialNumber:   caParams.SerialNumber,
+		Subject:        caParams.Subject,
+		DNSNames:       caParams.DNSNames,
+		EmailAddresses: caParams.EmailAddresses,
+		IPAddresses:    caParams.IPAddresses,
+		URIs:           caParams.URIs,
+		NotBefore:      caParams.NotBefore,
+		NotAfter:       caParams.NotAfter,
+		IsCA:           true,
+		ExtKeyUsage:    caParams.ExtKeyUsage,
+		KeyUsage:       caParams.KeyUsage,
+	}
+
+	// Generate the cert
+	cert, err := x509.CreateCertificate(rand.Reader, certSpec, certSpec, pubKey, privKey)
+	if err != nil {
+		log.WithError(err).WithFields(logTags).Error("Failed to generate ED25519 self-signed CA cert")
+		return nil, nil, err
+	}
+
+	// Convert the certificate to PEM format
+	return privKey, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert}), nil
+}
 
 // CertSigningRequestParams set of parameters needed when defining a CSR
 type CertSigningRequestParams struct {

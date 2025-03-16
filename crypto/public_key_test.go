@@ -5,6 +5,7 @@ import (
 	"crypto/ed25519"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"math/big"
 	"testing"
 	"time"
 
@@ -13,6 +14,50 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestCreateEd25519SelfSignedCA(t *testing.T) {
+	assert := assert.New(t)
+	log.SetLevel(log.DebugLevel)
+
+	utCtxt := context.Background()
+
+	engine, err := crypto.NewEngine(log.Fields{})
+	assert.Nil(err)
+
+	current := time.Now().UTC()
+
+	// Case 0: basic usage
+	{
+		params := crypto.CertParams{
+			SerialNumber: big.NewInt(42),
+			Subject:      pkix.Name{CommonName: "unit-tester@testing.com"},
+			DNSNames:     []string{"unit-test.testing.com", "testing.com"},
+			NotBefore:    current,
+			NotAfter:     current.AddDate(0, 6, 0),
+			KeyUsage:     x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature,
+		}
+
+		priv, cert, err := engine.CreateED25519SelfSignedCA(utCtxt, params)
+		assert.Nil(err)
+		assert.NotNil(priv)
+		assert.NotEmpty(cert)
+
+		// Parse the cert again
+		caCert, err := engine.ParseCertificateFromPEM(utCtxt, string(cert))
+		assert.Nil(err)
+		assert.NotNil(caCert)
+
+		// Verify certificate parameters
+		assert.Equal(0, caCert.SerialNumber.Cmp(big.NewInt(42)))
+		assert.Equal(params.Subject.CommonName, caCert.Subject.CommonName)
+		assert.EqualValues(params.DNSNames, caCert.DNSNames)
+		assert.Equal(params.KeyUsage, caCert.KeyUsage)
+		// Verify public key
+		pub, err := engine.ReadED25519PublicKeyFromCert(utCtxt, caCert)
+		assert.Nil(err)
+		assert.EqualValues(priv.Public(), pub)
+	}
+}
 
 func TestCreateEd25519CSR(t *testing.T) {
 	assert := assert.New(t)
