@@ -62,4 +62,26 @@ func TestSodiumHashing(t *testing.T) {
 		log.Debug(base64.StdEncoding.EncodeToString(hash1))
 		log.Debug(base64.StdEncoding.EncodeToString(hash2))
 	}
+
+	// Case 2: no-key hash
+	{
+		uut1, err := sodium.GetHasher(utCtxt, nil)
+		assert.Nil(err)
+		uut2, err := sodium.GetHasher(utCtxt, nil)
+		assert.Nil(err)
+
+		test := []string{uuid.NewString(), uuid.NewString(), uuid.NewString()}
+		for _, buf := range test {
+			assert.Nil(uut1.Update([]byte(buf)))
+			assert.Nil(uut2.Update([]byte(buf)))
+		}
+		assert.Nil(uut1.Finalize())
+		assert.Nil(uut2.Finalize())
+
+		hash1 := uut1.GetHash()
+		hash2 := uut2.GetHash()
+		assert.EqualValues(hash1, hash2)
+		log.Debug(base64.StdEncoding.EncodeToString(hash1))
+		log.Debug(base64.StdEncoding.EncodeToString(hash2))
+	}
 }

@@ -58,19 +58,26 @@ func (c *engineImpl) GetHasher(ctxt context.Context, key SecureCSlice) (Hasher, 
 
 // init perform hasher initialization. This prepares the internal compute state
 func (h *sodiumHasher) init() error {
-	key, err := h.key.GetCArray()
-	if err != nil {
-		return err
-	}
 	state, err := h.state.GetCArray()
 	if err != nil {
 		return err
+	}
+	var key unsafe.Pointer
+	keySize := 0
+	if h.key != nil {
+		key, err = h.key.GetCArray()
+		if err != nil {
+			return err
+		}
+		keySize = C.crypto_generichash_KEYBYTES
+	} else {
+		key = nil
 	}
 
 	resp := int(C.crypto_generichash_init(
 		(*C.crypto_generichash_state)(state),
 		(*C.uchar)(key),
-		C.crypto_generichash_KEYBYTES,
+		C.size_t(keySize),
 		C.crypto_generichash_BYTES_MAX,
 	))
 	if resp != 0 {
