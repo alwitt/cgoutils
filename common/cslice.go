@@ -1,4 +1,5 @@
-package common
+// Package common - common utility structs and functions
+package common //revive:disable-line:var-naming
 
 // #include <stdlib.h>
 // #include <stdint.h>

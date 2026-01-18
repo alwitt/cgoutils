@@ -1,3 +1,4 @@
+// Package common_text - test package for `common`
 package common_test
 
 import (

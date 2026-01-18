@@ -6,7 +6,7 @@ all: lint
 .PHONY: lint
 lint: .prepare ## Lint the files
 	@go mod tidy
-	@golint ./...
+	@revive ./...
 	@golangci-lint run ./...
 
 .PHONY: fix
@@ -42,10 +42,8 @@ cicd-support: ## Build CICD support docker image
 	@docker build -t "alwitt/cicd-support:cgoutils" -f docker/Dockerfile.cicd-support .
 
 .prepare: ## Prepare the project for local development
-	@pip3 install --user pre-commit
 	@pre-commit install
 	@pre-commit install-hooks
-	@GO111MODULE=on go install github.com/go-critic/go-critic/cmd/gocritic@v0.5.4
 	@touch .prepare
 
 help: ## Display this help screen

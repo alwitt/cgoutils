@@ -40,11 +40,11 @@ SetKey set the encryption key
 	@param key SecureCSlice - the encryption key
 */
 func (a *sodiumXChaCha20Poly1305) SetKey(key SecureCSlice) error {
-	if len, err := key.GetLen(); err != nil {
+	if length, err := key.GetLen(); err != nil {
 		return err
-	} else if len != a.ExpectedKeyLen() {
+	} else if length != a.ExpectedKeyLen() {
 		return fmt.Errorf(
-			"incorrect key length for XChaCha20-Poly1305: %d =/= %d", len, a.ExpectedKeyLen(),
+			"incorrect key length for XChaCha20-Poly1305: %d =/= %d", length, a.ExpectedKeyLen(),
 		)
 	}
 	a.key = key
@@ -57,11 +57,11 @@ SetNonce set the nonce
 	@param nonce SecureCSlice - the nonce
 */
 func (a *sodiumXChaCha20Poly1305) SetNonce(nonce SecureCSlice) error {
-	if len, err := nonce.GetLen(); err != nil {
+	if length, err := nonce.GetLen(); err != nil {
 		return err
-	} else if len != a.ExpectedNonceLen() {
+	} else if length != a.ExpectedNonceLen() {
 		return fmt.Errorf(
-			"incorrect nonce length for XChaCha20-Poly1305: %d =/= %d", len, a.ExpectedNonceLen(),
+			"incorrect nonce length for XChaCha20-Poly1305: %d =/= %d", length, a.ExpectedNonceLen(),
 		)
 	}
 	a.nonce = nonce

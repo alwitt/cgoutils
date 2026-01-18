@@ -46,11 +46,11 @@ SetKey set the encryption key
 	@param key SecureCSlice - the encryption key
 */
 func (a *sodiumAES256GCM) SetKey(key SecureCSlice) error {
-	if len, err := key.GetLen(); err != nil {
+	if length, err := key.GetLen(); err != nil {
 		return err
-	} else if len != a.ExpectedKeyLen() {
+	} else if length != a.ExpectedKeyLen() {
 		return fmt.Errorf(
-			"incorrect key length for AES256-GCM: %d =/= %d", len, a.ExpectedKeyLen(),
+			"incorrect key length for AES256-GCM: %d =/= %d", length, a.ExpectedKeyLen(),
 		)
 	}
 	a.key = key
@@ -72,11 +72,11 @@ SetNonce set the nonce
 	@param nonce SecureCSlice - the nonce
 */
 func (a *sodiumAES256GCM) SetNonce(nonce SecureCSlice) error {
-	if len, err := nonce.GetLen(); err != nil {
+	if length, err := nonce.GetLen(); err != nil {
 		return err
-	} else if len != a.ExpectedNonceLen() {
+	} else if length != a.ExpectedNonceLen() {
 		return fmt.Errorf(
-			"incorrect nonce length for AES256-GCM: %d =/= %d", len, a.ExpectedNonceLen(),
+			"incorrect nonce length for AES256-GCM: %d =/= %d", length, a.ExpectedNonceLen(),
 		)
 	}
 	a.nonce = nonce
@@ -143,7 +143,7 @@ Seal encrypt plain text with associated additional data.
 	@param cipherText []byte - the output buffer for the cipher text
 */
 func (a *sodiumAES256GCM) Seal(
-	ctxt context.Context, msgIndex int64, plainText []byte, additional []byte, cipherText []byte,
+	_ context.Context, msgIndex int64, plainText []byte, additional []byte, cipherText []byte,
 ) error {
 	plainLen := int64(len(plainText))
 	additionalLen := int64(len(additional))
@@ -211,7 +211,7 @@ Unseal decrypt cipher text with associated additional data.
 	@param plainText []byte - the output buffer for plain text
 */
 func (a *sodiumAES256GCM) Unseal(
-	ctxt context.Context, msgIndex int64, cipherText []byte, additional []byte, plainText []byte,
+	_ context.Context, msgIndex int64, cipherText []byte, additional []byte, plainText []byte,
 ) error {
 	cipherLen := int64(len(cipherText))
 	additionalLen := int64(len(additional))

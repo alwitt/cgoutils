@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   cgoutils_dev_cfssl:
     container_name: cgoutils_dev_cfssl

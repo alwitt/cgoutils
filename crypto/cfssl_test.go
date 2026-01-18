@@ -46,7 +46,7 @@ func TestCFSSLCallCSRSigning(t *testing.T) {
 		httpmock.RegisterResponder(
 			"POST",
 			expectedURL,
-			func(r *http.Request) (*http.Response, error) {
+			func(_ *http.Request) (*http.Response, error) {
 				// return bad response
 				return httpmock.NewJsonResponse(
 					http.StatusBadRequest, map[string]interface{}{"success": false},
@@ -82,7 +82,7 @@ func TestCFSSLCallCSRSigning(t *testing.T) {
 		httpmock.RegisterResponder(
 			"POST",
 			expectedURL,
-			func(r *http.Request) (*http.Response, error) {
+			func(_ *http.Request) (*http.Response, error) {
 				// return bad response
 				return httpmock.NewJsonResponse(
 					http.StatusOK, map[string]interface{}{"success": false},
@@ -118,7 +118,7 @@ func TestCFSSLCallCSRSigning(t *testing.T) {
 		httpmock.RegisterResponder(
 			"POST",
 			expectedURL,
-			func(r *http.Request) (*http.Response, error) {
+			func(_ *http.Request) (*http.Response, error) {
 				// return bad response
 				return httpmock.NewJsonResponse(
 					http.StatusOK, map[string]interface{}{"success": true},
