@@ -23,6 +23,8 @@ jobs:
 
       - name: Revive
         uses: morphy2k/revive-action@v2
+        with:
+          config: revive.toml
 
   golangci-lint:
     runs-on: ubuntu-latest

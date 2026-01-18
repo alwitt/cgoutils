@@ -1,5 +1,5 @@
 // Package crypto - cryptography utility package
-package crypto //revive:disable-line:skip-package-name-collision-with-go-std
+package crypto
 
 import "context"
 

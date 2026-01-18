@@ -6,7 +6,7 @@ all: lint
 .PHONY: lint
 lint: .prepare ## Lint the files
 	@go mod tidy
-	@revive ./...
+	@revive -config revive.toml ./...
 	@golangci-lint run ./...
 
 .PHONY: fix
@@ -28,6 +28,12 @@ prep-cfssl: .prepare ## Prepare CA certficate for use by development cfssl
 	cfssl genkey -initca docker/cfssl_ca.csr.json | tee tmp/test_ca/new_ca.json
 	cat tmp/test_ca/new_ca.json | jq '.cert' -r | tee docker/test_ca.pem
 	cat tmp/test_ca/new_ca.json | jq '.key' -r | tee docker/test_ca_key.pem
+
+.PHONY: prep-rsa
+prep-rsa: .prepare ## Prepare self-signed RSA certificate for testing
+	mkdir -vp tmp/test_rsa
+	openssl req -newkey rsa:2048 -noenc -keyout tmp/test_rsa/ut_rsa.key -out tmp/test_rsa/ut_rsa.csr
+	openssl x509 -signkey tmp/test_rsa/ut_rsa.key -in tmp/test_rsa/ut_rsa.csr -req -days 365 -out tmp/test_rsa/ut_rsa.crt
 
 .PHONY: up
 up: ## Prepare the docker stack

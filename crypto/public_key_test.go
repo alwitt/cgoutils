@@ -5,13 +5,16 @@ import (
 	"crypto/ed25519"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"io"
 	"math/big"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/alwitt/cgoutils/crypto"
 	"github.com/apex/log"
 	"github.com/go-resty/resty/v2"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -180,4 +183,133 @@ func TestCertSigningEndToEnd(t *testing.T) {
 	signedPublicKey, err := engine.ReadED25519PublicKeyFromCert(utCtxt, parsedCert)
 	assert.Nil(err)
 	assert.Equal(priv.Public(), signedPublicKey)
+}
+
+func TestRSALoadFromPEM(t *testing.T) {
+	assert := assert.New(t)
+	log.SetLevel(log.DebugLevel)
+
+	utCtxt := context.Background()
+
+	engine, err := crypto.NewEngine(log.Fields{"component": "crypto-engine"})
+	assert.Nil(err)
+
+	testCertFile, err := os.Open("../test/ut_rsa.crt")
+	assert.Nil(err)
+	defer func() {
+		assert.Nil(testCertFile.Close())
+	}()
+	testKeyFile, err := os.Open("../test/ut_rsa.key")
+	assert.Nil(err)
+	defer func() {
+		assert.Nil(testKeyFile.Close())
+	}()
+
+	testCert, err := io.ReadAll(testCertFile)
+	assert.Nil(err)
+	testKey, err := io.ReadAll(testKeyFile)
+	assert.Nil(err)
+
+	parsedCert, err := engine.ParseCertificateFromPEM(utCtxt, string(testCert))
+	assert.Nil(err)
+	parsedKey, err := engine.ParseRSAPrivateKeyFromPEM(utCtxt, string(testKey))
+	assert.Nil(err)
+
+	parsedPub, err := engine.ReadRSAPublicKeyFromCert(utCtxt, parsedCert)
+	assert.Nil(err)
+
+	assert.True(parsedKey.PublicKey.Equal(parsedPub))
+}
+
+func TestRSAEncryption(t *testing.T) {
+	assert := assert.New(t)
+	log.SetLevel(log.DebugLevel)
+
+	utCtxt := context.Background()
+
+	engine, err := crypto.NewEngine(log.Fields{"component": "crypto-engine"})
+	assert.Nil(err)
+
+	testCertFile, err := os.Open("../test/ut_rsa.crt")
+	assert.Nil(err)
+	defer func() {
+		assert.Nil(testCertFile.Close())
+	}()
+	testKeyFile, err := os.Open("../test/ut_rsa.key")
+	assert.Nil(err)
+	defer func() {
+		assert.Nil(testKeyFile.Close())
+	}()
+
+	testCert, err := io.ReadAll(testCertFile)
+	assert.Nil(err)
+	testKey, err := io.ReadAll(testKeyFile)
+	assert.Nil(err)
+
+	parsedCert, err := engine.ParseCertificateFromPEM(utCtxt, string(testCert))
+	assert.Nil(err)
+	parsedKey, err := engine.ParseRSAPrivateKeyFromPEM(utCtxt, string(testKey))
+	assert.Nil(err)
+
+	parsedPub, err := engine.ReadRSAPublicKeyFromCert(utCtxt, parsedCert)
+	assert.Nil(err)
+
+	plainText := []byte(uuid.NewString())
+
+	cipherText, err := engine.RSAEncrypt(utCtxt, plainText, parsedPub, nil)
+	assert.Nil(err)
+
+	decrypted, err := engine.RSADecrypt(utCtxt, cipherText, parsedKey, nil)
+	assert.Nil(err)
+
+	assert.EqualValues(plainText, decrypted)
+}
+
+func TestRSAEncryptionWrongLabel(t *testing.T) {
+	assert := assert.New(t)
+	log.SetLevel(log.DebugLevel)
+
+	utCtxt := context.Background()
+
+	engine, err := crypto.NewEngine(log.Fields{"component": "crypto-engine"})
+	assert.Nil(err)
+
+	testCertFile, err := os.Open("../test/ut_rsa.crt")
+	assert.Nil(err)
+	defer func() {
+		assert.Nil(testCertFile.Close())
+	}()
+	testKeyFile, err := os.Open("../test/ut_rsa.key")
+	assert.Nil(err)
+	defer func() {
+		assert.Nil(testKeyFile.Close())
+	}()
+
+	testCert, err := io.ReadAll(testCertFile)
+	assert.Nil(err)
+	testKey, err := io.ReadAll(testKeyFile)
+	assert.Nil(err)
+
+	parsedCert, err := engine.ParseCertificateFromPEM(utCtxt, string(testCert))
+	assert.Nil(err)
+	parsedKey, err := engine.ParseRSAPrivateKeyFromPEM(utCtxt, string(testKey))
+	assert.Nil(err)
+
+	parsedPub, err := engine.ReadRSAPublicKeyFromCert(utCtxt, parsedCert)
+	assert.Nil(err)
+
+	plainText := []byte(uuid.NewString())
+
+	label := []byte(uuid.NewString())
+
+	cipherText, err := engine.RSAEncrypt(utCtxt, plainText, parsedPub, label)
+	assert.Nil(err)
+
+	_, err = engine.RSADecrypt(utCtxt, cipherText, parsedKey, []byte(uuid.NewString()))
+	assert.NotNil(err)
+
+	decrypted, err := engine.RSADecrypt(utCtxt, cipherText, parsedKey, label)
+	assert.Nil(err)
+
+	assert.EqualValues(plainText, decrypted)
 }

@@ -6,6 +6,8 @@ import "C"
 
 import (
 	"context"
+	"fmt"
+	"io"
 
 	"github.com/apex/log"
 )
@@ -39,4 +41,29 @@ func (c *engineImpl) GetRandomBuf(ctxt context.Context, length int) (SecureCSlic
 	log.WithFields(logTags).Debug("Got random bytes.")
 
 	return newBuf, nil
+}
+
+// RNGReader an RNG object with the Reader interface
+type RNGReader struct {
+	core *engineImpl
+}
+
+// Read implement the `io.Reader` interface
+func (r *RNGReader) Read(buf []byte) (int, error) {
+	randomBuf, err := r.core.GetRandomBuf(context.Background(), len(buf))
+	if err != nil {
+		return 0, fmt.Errorf("libsodium RNG call failed [%w]", err)
+	}
+
+	randomBufSlice, err := randomBuf.GetSlice()
+	if err != nil {
+		return 0, fmt.Errorf("unable to get random value buffer slice [%w]", err)
+	}
+
+	return copy(buf, randomBufSlice), nil
+}
+
+// GetRNGReader similar to various `rand.Reader` utilities
+func (c *engineImpl) GetRNGReader() io.Reader {
+	return &RNGReader{core: c}
 }

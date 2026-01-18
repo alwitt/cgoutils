@@ -3,7 +3,9 @@ package crypto
 import (
 	"context"
 	"crypto/ed25519"
+	"crypto/rsa"
 	"crypto/x509"
+	"io"
 )
 
 // Engine wrapper object for performing cryptographic operations on data
@@ -26,6 +28,9 @@ type Engine interface {
 			@param length int - the length of the buffer to fill
 	*/
 	GetRandomBuf(ctxt context.Context, length int) (SecureCSlice, error)
+
+	// GetRNGReader similar to various `rand.Reader` utilities
+	GetRNGReader() io.Reader
 
 	// ------------------------------------------------------------------------------------
 	// Hashing
@@ -79,7 +84,7 @@ type Engine interface {
 	) (SecureCSlice, error)
 
 	// ------------------------------------------------------------------------------------
-	// ED25519 Public Key Crypto
+	// Public Key Crypto
 
 	/*
 		CreateED25519SelfSignedCA create an ED25519 self-signed certificate authority
@@ -104,6 +109,17 @@ type Engine interface {
 	) (ed25519.PrivateKey, []byte, error)
 
 	/*
+		ParseRSAPrivateKeyFromPEM parse a PEM for a RSA private key in PKCS1 or PKCS8 format
+
+			@param ctxt context.Context - calling context
+			@param keyPem string - the PEM string
+			@returns the parsed RSA private key
+	*/
+	ParseRSAPrivateKeyFromPEM(
+		ctxt context.Context, keyPem string,
+	) (*rsa.PrivateKey, error)
+
+	/*
 		ParseCertificateFromPEM parse a PEM block for a certificate
 
 			@param ctxt context.Context - calling context
@@ -122,6 +138,47 @@ type Engine interface {
 	ReadED25519PublicKeyFromCert(
 		ctxt context.Context, cert *x509.Certificate,
 	) (ed25519.PublicKey, error)
+
+	/*
+		ReadRSAPublicKeyFromCert read the RSA public from certificate
+
+			@param ctxt context.Context - calling context
+			@param cert *x509.Certificate - certificate
+			@returns the RSA public key
+	*/
+	ReadRSAPublicKeyFromCert(
+		ctxt context.Context, cert *x509.Certificate,
+	) (*rsa.PublicKey, error)
+
+	/*
+		RSAEncrypt wrapper function, encrypt plain text using RSA public key
+
+			@param ctxt context.Context - calling context
+			@param plainText []byte - plain text being encrypted
+			@param pubKey *rsa.PublicKey - RSA public key
+			@param dataLabel []byte - contain arbitrary data that will not be encrypted, but which gives
+			    important context to the message. Similar in concept to the additional data of AEAD.
+			    Leave empty if not used.
+			@returns encrypted cipher text
+	*/
+	RSAEncrypt(
+		ctxt context.Context, plainText []byte, pubKey *rsa.PublicKey, dataLabel []byte,
+	) ([]byte, error)
+
+	/*
+		RSADecrypt wrapper function, decrypt cipher text using RSA private key
+
+			@param ctxt context.Context - calling context
+			@param cipherText []byte - cipher text being decrypted
+			@param privKey *rsa.PrivateKey - RSA private key
+			@param dataLabel []byte - contain arbitrary data that will not be decrypted, but which gives
+			    important context to the message. Similar in concept to the additional data of AEAD.
+			    Leave empty if not used.
+			@returns decrypted plain text
+	*/
+	RSADecrypt(
+		ctxt context.Context, cipherText []byte, privKey *rsa.PrivateKey, dataLabel []byte,
+	) ([]byte, error)
 
 	// ------------------------------------------------------------------------------------
 	// ECDH
