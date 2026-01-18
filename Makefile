@@ -39,7 +39,7 @@ down: ## Take down docker stack
 
 .PHONY: cicd-support
 cicd-support: ## Build CICD support docker image
-	@docker build -t "alwitt/cicd-support:cgoutils" -f docker/Dockerfile.cicd-support .
+	@docker build --push -t "alwitt/cicd-support:cgoutils-0.1.0" -f docker/Dockerfile.cicd-support .
 
 .prepare: ## Prepare the project for local development
 	@pre-commit install
