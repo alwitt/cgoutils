@@ -123,7 +123,7 @@ func (c *cfsslClientImpl) makeRequest(
 		respError := resp.Error().(*goutils.RestAPIBaseResponse)
 		var err error
 		if respError.Error != nil {
-			err = fmt.Errorf(respError.Error.Detail)
+			err = fmt.Errorf("%s", respError.Error.Detail)
 		} else {
 			err = fmt.Errorf("status code %d", resp.StatusCode())
 		}
