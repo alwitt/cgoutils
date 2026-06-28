@@ -8,8 +8,8 @@ import "C"
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/alwitt/cgoutils/common"
 	"github.com/alwitt/goutils"
 	"github.com/apex/log"
 )
@@ -44,7 +44,7 @@ func (c *engineImpl) init() error {
 	resp := int(C.sodium_init())
 
 	if resp == -1 {
-		return fmt.Errorf("failed to initialize 'libsodium'")
+		return common.NewSodiumError("failed to initialize 'libsodium'", nil, true)
 	}
 	if resp == 1 {
 		log.WithFields(logTags).Debug("libsodium already initialized")

@@ -17,6 +17,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alwitt/cgoutils/common"
+	"github.com/alwitt/goutils"
 	"github.com/apex/log"
 )
 
@@ -60,7 +62,7 @@ func (c *engineImpl) CreateED25519SelfSignedCA(
 	pubKey, privKey, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to generate ED25519 key pair")
-		return nil, nil, err
+		return nil, nil, common.NewCryptoError("failed to generate ED25519 key pair", err, true)
 	}
 
 	// Define certificate parameters
@@ -82,7 +84,9 @@ func (c *engineImpl) CreateED25519SelfSignedCA(
 	cert, err := x509.CreateCertificate(rand.Reader, certSpec, certSpec, pubKey, privKey)
 	if err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to generate ED25519 self-signed CA cert")
-		return nil, nil, err
+		return nil, nil, common.NewCryptoError(
+			"failed to generate ED25519 self-signed CA cert", err, true,
+		)
 	}
 
 	// Convert the certificate to PEM format
@@ -119,7 +123,7 @@ func (c *engineImpl) CreateED25519CSR(
 	_, privKey, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to generate ED25519 key pair")
-		return nil, nil, err
+		return nil, nil, common.NewCryptoError("failed to generate ED25519 key pair", err, true)
 	}
 
 	csrReqParams := &x509.CertificateRequest{
@@ -135,7 +139,7 @@ func (c *engineImpl) CreateED25519CSR(
 	csrPayload, err := x509.CreateCertificateRequest(rand.Reader, csrReqParams, privKey)
 	if err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to generate ED25519 CSR")
-		return nil, nil, err
+		return nil, nil, common.NewCryptoError("failed to generate ED25519 CSR", err, true)
 	}
 
 	// Convert the CSR to PEM format
@@ -159,12 +163,12 @@ func (c *engineImpl) ParseRSAPrivateKeyFromPEM(
 	// PEM decode the certificate
 	pemBlock, _ := pem.Decode([]byte(keyPem))
 	if pemBlock == nil {
-		err := fmt.Errorf("failed to parse out a PEM block from input")
+		err := goutils.NewBadInputError("failed to parse out a PEM block from input", nil, true)
 		log.WithError(err).WithFields(logTags).Error("Failed to PEM decode a certificate")
 		return nil, err
 	}
 	if pemBlock.Bytes == nil {
-		err := fmt.Errorf("read empty payload from the PEM block")
+		err := goutils.NewBadInputError("read empty payload from the PEM block", nil, true)
 		log.WithError(err).WithFields(logTags).Error("Certificate contained no payload")
 		return nil, err
 	}
@@ -174,7 +178,7 @@ func (c *engineImpl) ParseRSAPrivateKeyFromPEM(
 		theKey, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
 		if err != nil {
 			log.WithError(err).WithFields(logTags).Error("Failed to parse PKCS1 RSA key")
-			return nil, err
+			return nil, common.NewCryptoError("failed to parse PKCS1 RSA key", err, true)
 		}
 		return theKey, nil
 	}
@@ -182,11 +186,11 @@ func (c *engineImpl) ParseRSAPrivateKeyFromPEM(
 	rawKey, err := x509.ParsePKCS8PrivateKey(pemBlock.Bytes)
 	if err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to parse PKCS8 RSA key")
-		return nil, err
+		return nil, common.NewCryptoError("failed to parse PKCS8 RSA key", err, true)
 	}
 	theKey, ok := rawKey.(*rsa.PrivateKey)
 	if !ok {
-		err := fmt.Errorf("core of PKCS8 private key of is not RSA")
+		err := goutils.NewBadInputError("core of PKCS8 private key of is not RSA", nil, true)
 		log.WithError(err).WithFields(logTags).Error("Did not find RSA key material")
 		return nil, err
 	}
@@ -208,18 +212,23 @@ func (c *engineImpl) ParseCertificateFromPEM(
 	// PEM decode the certificate
 	pemBlock, _ := pem.Decode([]byte(certPem))
 	if pemBlock == nil {
-		err := fmt.Errorf("failed to parse out a PEM block from input")
+		err := goutils.NewBadInputError("failed to parse out a PEM block from input", nil, true)
 		log.WithError(err).WithFields(logTags).Error("Failed to PEM decode a certificate")
 		return nil, err
 	}
 	if pemBlock.Bytes == nil {
-		err := fmt.Errorf("read empty payload from the PEM block")
+		err := goutils.NewBadInputError("read empty payload from the PEM block", nil, true)
 		log.WithError(err).WithFields(logTags).Error("Certificate contained no payload")
 		return nil, err
 	}
 
 	// Parse the DER encoded string for a certificate
-	return x509.ParseCertificate(pemBlock.Bytes)
+	cert, err := x509.ParseCertificate(pemBlock.Bytes)
+	if err != nil {
+		log.WithError(err).WithFields(logTags).Error("Failed to parse certificate")
+		return nil, common.NewCryptoError("failed to parse certificate", err, true)
+	}
+	return cert, nil
 }
 
 /*
@@ -233,13 +242,15 @@ func (c *engineImpl) ReadED25519PublicKeyFromCert(
 	_ context.Context, cert *x509.Certificate,
 ) (ed25519.PublicKey, error) {
 	if x509.Ed25519 != cert.PublicKeyAlgorithm {
-		err := fmt.Errorf("cert did not contain a ED25519 public key")
-		return nil, err
+		return nil, goutils.NewBadInputError("cert did not contain a ED25519 public key", nil, true)
 	}
 	asED25519, ok := cert.PublicKey.(ed25519.PublicKey)
 	if !ok {
-		err := fmt.Errorf("cert object public key field was type '%s'", reflect.TypeOf(cert.PublicKey))
-		return nil, err
+		return nil, goutils.NewConsistencyError(
+			fmt.Sprintf("cert object public key field was type '%s'", reflect.TypeOf(cert.PublicKey)),
+			nil,
+			true,
+		)
 	}
 	return asED25519, nil
 }
@@ -255,13 +266,15 @@ func (c *engineImpl) ReadRSAPublicKeyFromCert(
 	_ context.Context, cert *x509.Certificate,
 ) (*rsa.PublicKey, error) {
 	if x509.RSA != cert.PublicKeyAlgorithm {
-		err := fmt.Errorf("cert did not contain a RSA public key")
-		return nil, err
+		return nil, goutils.NewBadInputError("cert did not contain a RSA public key", nil, true)
 	}
 	asRSA, ok := cert.PublicKey.(*rsa.PublicKey)
 	if !ok {
-		err := fmt.Errorf("cert object public key field was type '%s'", reflect.TypeOf(cert.PublicKey))
-		return nil, err
+		return nil, goutils.NewConsistencyError(
+			fmt.Sprintf("cert object public key field was type '%s'", reflect.TypeOf(cert.PublicKey)),
+			nil,
+			true,
+		)
 	}
 	return asRSA, nil
 }
@@ -280,7 +293,11 @@ RSAEncrypt wrapper function, encrypt plain text using RSA public key
 func (c *engineImpl) RSAEncrypt(
 	_ context.Context, plainText []byte, pubKey *rsa.PublicKey, dataLabel []byte,
 ) ([]byte, error) {
-	return rsa.EncryptOAEP(sha512.New(), c.GetRNGReader(), pubKey, plainText, dataLabel)
+	cipherText, err := rsa.EncryptOAEP(sha512.New(), c.GetRNGReader(), pubKey, plainText, dataLabel)
+	if err != nil {
+		return nil, common.NewCryptoError("failed to RSA encrypt", err, true)
+	}
+	return cipherText, nil
 }
 
 /*
@@ -297,5 +314,9 @@ RSADecrypt wrapper function, decrypt cipher text using RSA private key
 func (c *engineImpl) RSADecrypt(
 	_ context.Context, cipherText []byte, privKey *rsa.PrivateKey, dataLabel []byte,
 ) ([]byte, error) {
-	return rsa.DecryptOAEP(sha512.New(), c.GetRNGReader(), privKey, cipherText, dataLabel)
+	plainText, err := rsa.DecryptOAEP(sha512.New(), c.GetRNGReader(), privKey, cipherText, dataLabel)
+	if err != nil {
+		return nil, common.NewCryptoError("failed to RSA decrypt", err, true)
+	}
+	return plainText, nil
 }

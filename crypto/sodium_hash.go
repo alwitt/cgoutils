@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"unsafe"
 
+	"github.com/alwitt/cgoutils/common"
+	"github.com/alwitt/goutils"
 	"github.com/apex/log"
 )
 
@@ -25,7 +27,11 @@ GetHasherKey get a key for the cryptographic hasher
 	@param ctxt context.Context - calling context
 */
 func (c *engineImpl) GetHasherKey(ctxt context.Context) (SecureCSlice, error) {
-	return c.GetRandomBuf(ctxt, C.crypto_generichash_KEYBYTES)
+	key, err := c.GetRandomBuf(ctxt, C.crypto_generichash_KEYBYTES)
+	if err != nil {
+		return nil, goutils.NewRuntimeError("failed to define new hash key", err, true)
+	}
+	return key, nil
 }
 
 /*
@@ -41,7 +47,9 @@ func (c *engineImpl) GetHasher(ctxt context.Context, key SecureCSlice) (Hasher, 
 	state, err := c.AllocateSecureCSlice(C.sizeof_crypto_generichash_state)
 	if err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to initialize buffer for hasher state")
-		return nil, err
+		return nil, goutils.NewRuntimeError(
+			"failed to initialize buffer for hasher state", err, true,
+		)
 	}
 
 	hasher := &sodiumHasher{
@@ -51,6 +59,7 @@ func (c *engineImpl) GetHasher(ctxt context.Context, key SecureCSlice) (Hasher, 
 	// Initialize the hasher
 	if err := hasher.init(); err != nil {
 		log.WithError(err).WithFields(logTags).Error("libsodium hasher failed to initialize")
+		return nil, goutils.NewRuntimeError("libsodium hasher failed to initialize", err, true)
 	}
 
 	return hasher, nil
@@ -60,14 +69,14 @@ func (c *engineImpl) GetHasher(ctxt context.Context, key SecureCSlice) (Hasher, 
 func (h *sodiumHasher) init() error {
 	state, err := h.state.GetCArray()
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to get pointer to hasher state array", err, true)
 	}
 	var key unsafe.Pointer
 	keySize := 0
 	if h.key != nil {
 		key, err = h.key.GetCArray()
 		if err != nil {
-			return err
+			return goutils.NewRuntimeError("unable to get pointer to hasher key array", err, true)
 		}
 		keySize = C.crypto_generichash_KEYBYTES
 	} else {
@@ -81,7 +90,9 @@ func (h *sodiumHasher) init() error {
 		C.crypto_generichash_BYTES_MAX,
 	))
 	if resp != 0 {
-		return fmt.Errorf("hasher failed on `crypto_generichash_init` call with %d", resp)
+		return common.NewSodiumError(
+			fmt.Sprintf("hasher failed on `crypto_generichash_init` call with %d", resp), nil, true,
+		)
 	}
 
 	return nil
@@ -95,7 +106,7 @@ Update update the hash compute with new data
 func (h *sodiumHasher) Update(buf []byte) error {
 	state, err := h.state.GetCArray()
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to get pointer to hasher state array", err, true)
 	}
 	resp := int(C.crypto_generichash_update(
 		(*C.crypto_generichash_state)(state),
@@ -103,7 +114,9 @@ func (h *sodiumHasher) Update(buf []byte) error {
 		C.ulonglong(len(buf)),
 	))
 	if resp != 0 {
-		return fmt.Errorf("hasher failed on `crypto_generichash_update` call with %d", resp)
+		return common.NewSodiumError(
+			fmt.Sprintf("hasher failed on `crypto_generichash_update` call with %d", resp), nil, true,
+		)
 	}
 	return nil
 }
@@ -114,7 +127,7 @@ Finalize finalize the hash computation
 func (h *sodiumHasher) Finalize() error {
 	state, err := h.state.GetCArray()
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to get pointer to hasher state array", err, true)
 	}
 	resp := int(C.crypto_generichash_final(
 		(*C.crypto_generichash_state)(state),
@@ -122,10 +135,15 @@ func (h *sodiumHasher) Finalize() error {
 		C.ulong(len(h.hash)),
 	))
 	if resp != 0 {
-		return fmt.Errorf("hasher failed on `crypto_generichash_final` call with %d", resp)
+		return common.NewSodiumError(
+			fmt.Sprintf("hasher failed on `crypto_generichash_final` call with %d", resp), nil, true,
+		)
 	}
 	// Clear the state
-	return h.state.Zero()
+	if err := h.state.Zero(); err != nil {
+		return goutils.NewRuntimeError("unable to reset hasher state array", err, true)
+	}
+	return nil
 }
 
 /*

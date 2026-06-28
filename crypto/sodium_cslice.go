@@ -10,6 +10,8 @@ import (
 	"slices"
 	"unsafe"
 
+	"github.com/alwitt/cgoutils/common"
+	"github.com/alwitt/goutils"
 	"github.com/apex/log"
 )
 
@@ -31,17 +33,23 @@ func freeSodiumCSlice(b *sodiumCSlice) {
 // allocate allocate the core buffer in libsodium
 func (b *sodiumCSlice) allocate(length int) error {
 	if b.core != nil {
-		return fmt.Errorf("still pointing at a previously allocated array")
+		return goutils.NewConsistencyError(
+			"sodiumCSlice core still pointing at a previously allocated array", nil, true,
+		)
 	}
 
 	if length < 0 {
-		return fmt.Errorf("can't allocated array with length < 0")
+		return goutils.NewBadInputError(
+			"sodiumCSlice can't allocated array with length < 0", nil, true,
+		)
 	}
 
 	// get the new buffer from libsodium
 	b.core = (*C.void)(C.sodium_malloc(C.size_t(length)))
 	if b.core == nil {
-		return fmt.Errorf("failed to allocated libsodium buffer of length %d", length)
+		return common.NewSodiumError(
+			fmt.Sprintf("failed to allocated libsodium buffer of length %d", length), nil, true,
+		)
 	}
 	log.
 		WithField("libsodium-ptr", unsafe.Pointer(b.core)).
@@ -58,7 +66,7 @@ func (b *sodiumCSlice) allocate(length int) error {
 // release release the core buffer in libsodium
 func (b *sodiumCSlice) release() error {
 	if b.core == nil {
-		return fmt.Errorf("slice is not allocated")
+		return goutils.NewConsistencyError("slice is not allocated", nil, true)
 	}
 
 	// Release the buffer in C
@@ -80,7 +88,7 @@ Zero zero the contents of the buffer
 */
 func (b *sodiumCSlice) Zero() error {
 	if b.core == nil {
-		return fmt.Errorf("slice is not allocated")
+		return goutils.NewConsistencyError("slice is not allocated", nil, true)
 	}
 
 	// Zero the buffer in C
@@ -100,7 +108,7 @@ GetLen return the length of slice
 */
 func (b *sodiumCSlice) GetLen() (int, error) {
 	if b.core == nil {
-		return -1, fmt.Errorf("slice is not allocated")
+		return -1, goutils.NewConsistencyError("slice is not allocated", nil, true)
 	}
 	return b.length, nil
 }
@@ -112,7 +120,7 @@ GetSlice return reference to the slice
 */
 func (b *sodiumCSlice) GetSlice() ([]byte, error) {
 	if b.core == nil {
-		return nil, fmt.Errorf("slice is not allocated")
+		return nil, goutils.NewConsistencyError("slice is not allocated", nil, true)
 	}
 	return unsafe.Slice((*byte)(unsafe.Pointer(b.core)), b.length), nil
 }
@@ -124,7 +132,7 @@ GetCArray return reference to the C buffer
 */
 func (b *sodiumCSlice) GetCArray() (unsafe.Pointer, error) {
 	if b.core == nil {
-		return nil, fmt.Errorf("slice is not allocated")
+		return nil, goutils.NewConsistencyError("slice is not allocated", nil, true)
 	}
 	return unsafe.Pointer(b.core), nil
 }
@@ -134,7 +142,7 @@ IncrementValue treat the content of the buffer as a large number, and increment 
 */
 func (b *sodiumCSlice) IncrementValue() error {
 	if b.core == nil {
-		return fmt.Errorf("slice is not allocated")
+		return goutils.NewConsistencyError("slice is not allocated", nil, true)
 	}
 
 	C.sodium_increment((*C.uchar)(unsafe.Pointer(b.core)), C.size_t(b.length))
@@ -149,7 +157,7 @@ AddValue treat the content of the buffer as a large number, and add another valu
 */
 func (b *sodiumCSlice) AddValue(value *big.Int) error {
 	if b.core == nil {
-		return fmt.Errorf("slice is not allocated")
+		return goutils.NewConsistencyError("slice is not allocated", nil, true)
 	}
 
 	valueBuf := make([]byte, b.length)

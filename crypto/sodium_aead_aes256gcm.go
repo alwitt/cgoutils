@@ -7,6 +7,9 @@ import (
 	"context"
 	"fmt"
 	"unsafe"
+
+	"github.com/alwitt/cgoutils/common"
+	"github.com/alwitt/goutils"
 )
 
 // sodiumAES256GCM implements AEAD using AES256-GCM
@@ -25,7 +28,7 @@ newAES256GCM define a AES256-GCM based AEAD
 func (c *engineImpl) newAES256GCM(_ context.Context) (*sodiumAES256GCM, error) {
 	// Verify the system support AES256-GCM
 	if C.crypto_aead_aes256gcm_is_available() == 0 {
-		return nil, fmt.Errorf("system does not support AES256-GCM in hardware")
+		return nil, goutils.NewRuntimeError("system does not support AES256-GCM in hardware", nil, true)
 	}
 
 	return &sodiumAES256GCM{core: c}, nil
@@ -47,10 +50,12 @@ SetKey set the encryption key
 */
 func (a *sodiumAES256GCM) SetKey(key SecureCSlice) error {
 	if length, err := key.GetLen(); err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to read AES256-GCM key length", err, true)
 	} else if length != a.ExpectedKeyLen() {
-		return fmt.Errorf(
-			"incorrect key length for AES256-GCM: %d =/= %d", length, a.ExpectedKeyLen(),
+		return goutils.NewConsistencyError(
+			fmt.Sprintf("incorrect key length for AES256-GCM: %d =/= %d", length, a.ExpectedKeyLen()),
+			nil,
+			true,
 		)
 	}
 	a.key = key
@@ -73,10 +78,12 @@ SetNonce set the nonce
 */
 func (a *sodiumAES256GCM) SetNonce(nonce SecureCSlice) error {
 	if length, err := nonce.GetLen(); err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to read AES256-GCM nonce length", err, true)
 	} else if length != a.ExpectedNonceLen() {
-		return fmt.Errorf(
-			"incorrect nonce length for AES256-GCM: %d =/= %d", length, a.ExpectedNonceLen(),
+		return goutils.NewConsistencyError(
+			fmt.Sprintf("incorrect nonce length for AES256-GCM: %d =/= %d", length, a.ExpectedNonceLen()),
+			nil,
+			true,
 		)
 	}
 	a.nonce = nonce
@@ -91,7 +98,7 @@ ResetNonce reset the AEAD nonce value
 func (a *sodiumAES256GCM) ResetNonce(ctxt context.Context) error {
 	nonce, err := a.core.GetRandomBuf(ctxt, a.ExpectedNonceLen())
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to clear AES256-GCM nonce", err, true)
 	}
 	a.nonce = nonce
 	return nil
@@ -151,7 +158,9 @@ func (a *sodiumAES256GCM) Seal(
 	// Make a copy of the nonce
 	theNonce, err := getAEADNonceForIndex(msgIndex, a.core, a)
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError(
+			fmt.Sprintf("unable to compute AES256-GCM nonce for index %d", msgIndex), err, true,
+		)
 	}
 
 	// Verify output buffer for cipher text
@@ -159,7 +168,11 @@ func (a *sodiumAES256GCM) Seal(
 	{
 		outputLen := int64(len(cipherText))
 		if outputLen != cipherLen {
-			return fmt.Errorf("cipher text output buffer wrong size: %d =/= %d", outputLen, cipherLen)
+			return goutils.NewConsistencyError(
+				fmt.Sprintf("cipher text output buffer wrong size: %d =/= %d", outputLen, cipherLen),
+				nil,
+				true,
+			)
 		}
 	}
 
@@ -167,11 +180,11 @@ func (a *sodiumAES256GCM) Seal(
 	cipherTextCore := unsafe.Pointer(&cipherText[0])
 	keyCore, err := a.key.GetCArray()
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to get pointer to cipher text buffer", err, true)
 	}
 	nonceCore, err := theNonce.GetCArray()
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to get pointer to AES256-GCM nonce", err, true)
 	}
 	plainTextPtr := unsafe.Pointer(&plainText[0])
 	var additionalPtr unsafe.Pointer
@@ -194,8 +207,9 @@ func (a *sodiumAES256GCM) Seal(
 		(*C.uchar)(keyCore),
 	)
 	if resp != 0 {
-		err := fmt.Errorf("encryption failed with %d", resp)
-		return err
+		return common.NewSodiumError(
+			fmt.Sprintf("AES256-GCM encryption failed with %d for index %d", resp, msgIndex), nil, true,
+		)
 	}
 
 	return nil
@@ -219,7 +233,9 @@ func (a *sodiumAES256GCM) Unseal(
 	// Make a copy of the nonce
 	theNonce, err := getAEADNonceForIndex(msgIndex, a.core, a)
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError(
+			fmt.Sprintf("unable to compute AES256-GCM nonce for index %d", msgIndex), err, true,
+		)
 	}
 
 	// Verify output for plain text
@@ -227,7 +243,11 @@ func (a *sodiumAES256GCM) Unseal(
 	{
 		outputLen := int64(len(plainText))
 		if outputLen != plainLen {
-			return fmt.Errorf("plain text output buffer wrong size: %d =/= %d", outputLen, plainLen)
+			return goutils.NewConsistencyError(
+				fmt.Sprintf("plain text output buffer wrong size: %d =/= %d", outputLen, plainLen),
+				nil,
+				true,
+			)
 		}
 	}
 
@@ -235,11 +255,11 @@ func (a *sodiumAES256GCM) Unseal(
 	cipherTextCore := unsafe.Pointer(&cipherText[0])
 	keyCore, err := a.key.GetCArray()
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to get pointer to cipher text buffer", err, true)
 	}
 	nonceCore, err := theNonce.GetCArray()
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to get pointer to AES256-GCM nonce", err, true)
 	}
 	plainTextPtr := unsafe.Pointer(&plainText[0])
 	var additionalPtr unsafe.Pointer
@@ -262,8 +282,9 @@ func (a *sodiumAES256GCM) Unseal(
 		(*C.uchar)(keyCore),
 	)
 	if resp != 0 {
-		err := fmt.Errorf("decryption failed with %d", resp)
-		return err
+		return common.NewSodiumError(
+			fmt.Sprintf("AES256-GCM decryption failed with %d for index %d", resp, msgIndex), nil, true,
+		)
 	}
 
 	return nil

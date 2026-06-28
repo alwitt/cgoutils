@@ -3,7 +3,6 @@ package crypto
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/url"
 
 	"github.com/alwitt/goutils"
@@ -106,7 +105,7 @@ func (c *cfsslClientImpl) makeRequest(
 	case "GET":
 		resp, err = request.Get(apiURL.String())
 	default:
-		return nil, fmt.Errorf("unsupported target method")
+		return nil, goutils.NewBadInputError("unsupported target method", nil, true)
 	}
 
 	if err != nil {
@@ -115,18 +114,17 @@ func (c *cfsslClientImpl) makeRequest(
 			WithFields(logTags).
 			WithField("outbound-request-id", reqID).
 			Error("Request failed on call")
-		return nil, err
+		return nil, goutils.NewRuntimeError("request failed on call", err, true)
 	}
 
 	// Request failed
 	if !resp.IsSuccess() {
 		respError := resp.Error().(*goutils.RestAPIBaseResponse)
-		var err error
+		message := "request failed"
 		if respError.Error != nil {
-			err = fmt.Errorf("%s", respError.Error.Detail)
-		} else {
-			err = fmt.Errorf("status code %d", resp.StatusCode())
+			message = respError.Error.Detail
 		}
+		err := goutils.NewHTTPRequestError(resp.StatusCode(), message, nil, true)
 		log.
 			WithError(err).
 			WithFields(logTags).
@@ -182,10 +180,10 @@ func (c *cfsslClientImpl) SignCSR(
 	var resp cfsslCSRResponse
 	if err := json.Unmarshal(respRaw, &resp); err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to parse CSR response")
-		return "", err
+		return "", goutils.NewBadInputError("failed to parse CSR response", err, true)
 	}
 	if !resp.Success {
-		err := fmt.Errorf("cfssl failed to sign CSR")
+		err := goutils.NewRuntimeError("cfssl failed to sign CSR", nil, true)
 		log.
 			WithError(err).
 			WithFields(logTags).
@@ -195,7 +193,7 @@ func (c *cfsslClientImpl) SignCSR(
 	}
 	if err := c.validate.Struct(&resp); err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to validate CSR response")
-		return "", err
+		return "", goutils.NewValidationError("failed to validate CSR response", err, true)
 	}
 
 	return resp.Result.Certificate, nil

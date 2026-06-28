@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"unsafe"
 
+	"github.com/alwitt/goutils"
 	"github.com/apex/log"
 )
 
@@ -57,17 +58,21 @@ func freeBasicCSlice(b *basicCSlice) {
 // allocate allocate the core buffer in C
 func (b *basicCSlice) allocate(length int) error {
 	if b.core != nil {
-		return fmt.Errorf("still pointing at a previously allocated array")
+		return goutils.NewConsistencyError(
+			"still pointing at a previously allocated array", nil, true,
+		)
 	}
 
 	if length < 0 {
-		return fmt.Errorf("can't allocated array with length < 0")
+		return goutils.NewBadInputError("can't allocated array with length < 0", nil, true)
 	}
 
 	// get the new buffer from C
 	b.core = (*C.void)(C.malloc(C.size_t(length)))
 	if b.core == nil {
-		return fmt.Errorf("failed to allocated C buffer of length %d", length)
+		return NewCError(
+			fmt.Sprintf("failed to allocated C buffer of length %d", length), nil, true,
+		)
 	}
 	log.
 		WithField("ptr", unsafe.Pointer(b.core)).
@@ -84,7 +89,7 @@ func (b *basicCSlice) allocate(length int) error {
 // release release the core buffer in c
 func (b *basicCSlice) release() error {
 	if b.core == nil {
-		return fmt.Errorf("slice is not allocated")
+		return goutils.NewConsistencyError("slice is not allocated", nil, true)
 	}
 
 	// Release the buffer in C
@@ -108,7 +113,7 @@ GetLen return the length of slice
 */
 func (b *basicCSlice) GetLen() (int, error) {
 	if b.core == nil {
-		return -1, fmt.Errorf("slice is not allocated")
+		return -1, goutils.NewConsistencyError("slice is not allocated", nil, true)
 	}
 	return b.length, nil
 }
@@ -120,7 +125,7 @@ GetSlice return reference to the slice
 */
 func (b *basicCSlice) GetSlice() ([]byte, error) {
 	if b.core == nil {
-		return nil, fmt.Errorf("slice is not allocated")
+		return nil, goutils.NewConsistencyError("slice is not allocated", nil, true)
 	}
 	return unsafe.Slice((*byte)(unsafe.Pointer(b.core)), b.length), nil
 }
@@ -132,7 +137,7 @@ GetCArray return reference to the C buffer
 */
 func (b *basicCSlice) GetCArray() (unsafe.Pointer, error) {
 	if b.core == nil {
-		return nil, fmt.Errorf("slice is not allocated")
+		return nil, goutils.NewConsistencyError("slice is not allocated", nil, true)
 	}
 	return unsafe.Pointer(b.core), nil
 }

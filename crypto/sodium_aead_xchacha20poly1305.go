@@ -7,6 +7,9 @@ import (
 	"context"
 	"fmt"
 	"unsafe"
+
+	"github.com/alwitt/cgoutils/common"
+	"github.com/alwitt/goutils"
 )
 
 // sodiumXChaCha20Poly1305 implements AEAD using XChaCha20-Poly1305
@@ -41,11 +44,11 @@ SetKey set the encryption key
 */
 func (a *sodiumXChaCha20Poly1305) SetKey(key SecureCSlice) error {
 	if length, err := key.GetLen(); err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to read XChaCha20-Poly1305 key length", err, true)
 	} else if length != a.ExpectedKeyLen() {
-		return fmt.Errorf(
+		return goutils.NewConsistencyError(fmt.Sprintf(
 			"incorrect key length for XChaCha20-Poly1305: %d =/= %d", length, a.ExpectedKeyLen(),
-		)
+		), nil, true)
 	}
 	a.key = key
 	return nil
@@ -58,11 +61,11 @@ SetNonce set the nonce
 */
 func (a *sodiumXChaCha20Poly1305) SetNonce(nonce SecureCSlice) error {
 	if length, err := nonce.GetLen(); err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to read XChaCha20-Poly1305 nonce length", err, true)
 	} else if length != a.ExpectedNonceLen() {
-		return fmt.Errorf(
+		return goutils.NewConsistencyError(fmt.Sprintf(
 			"incorrect nonce length for XChaCha20-Poly1305: %d =/= %d", length, a.ExpectedNonceLen(),
-		)
+		), nil, true)
 	}
 	a.nonce = nonce
 	return nil
@@ -76,7 +79,7 @@ ResetNonce reset the AEAD nonce value
 func (a *sodiumXChaCha20Poly1305) ResetNonce(ctxt context.Context) error {
 	nonce, err := a.core.GetRandomBuf(ctxt, a.ExpectedNonceLen())
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to clear XChaCha20-Poly1305 nonce", err, true)
 	}
 	a.nonce = nonce
 	return nil
@@ -136,7 +139,9 @@ func (a *sodiumXChaCha20Poly1305) Seal(
 	// Make a copy of the nonce
 	theNonce, err := getAEADNonceForIndex(msgIndex, a.core, a)
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError(
+			fmt.Sprintf("unable to compute XChaCha20-Poly1305 nonce for index %d", msgIndex), err, true,
+		)
 	}
 
 	// Verify output buffer for cipher text
@@ -144,7 +149,11 @@ func (a *sodiumXChaCha20Poly1305) Seal(
 	{
 		outputLen := int64(len(cipherText))
 		if outputLen != cipherLen {
-			return fmt.Errorf("cipher text output buffer wrong size: %d =/= %d", outputLen, cipherLen)
+			return goutils.NewConsistencyError(
+				fmt.Sprintf("cipher text output buffer wrong size: %d =/= %d", outputLen, cipherLen),
+				nil,
+				true,
+			)
 		}
 	}
 
@@ -152,11 +161,11 @@ func (a *sodiumXChaCha20Poly1305) Seal(
 	cipherTextCore := unsafe.Pointer(&cipherText[0])
 	keyCore, err := a.key.GetCArray()
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to get pointer to cipher text buffer", err, true)
 	}
 	nonceCore, err := theNonce.GetCArray()
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to get pointer to XChaCha20-Poly1305 nonce", err, true)
 	}
 	plainTextPtr := unsafe.Pointer(&plainText[0])
 	var additionalPtr unsafe.Pointer
@@ -179,8 +188,11 @@ func (a *sodiumXChaCha20Poly1305) Seal(
 		(*C.uchar)(keyCore),
 	)
 	if resp != 0 {
-		err := fmt.Errorf("encryption failed with %d", resp)
-		return err
+		return common.NewSodiumError(
+			fmt.Sprintf("XChaCha20-Poly1305 encryption failed with %d for index %d", resp, msgIndex),
+			nil,
+			true,
+		)
 	}
 
 	return nil
@@ -204,7 +216,9 @@ func (a *sodiumXChaCha20Poly1305) Unseal(
 	// Make a copy of the nonce
 	theNonce, err := getAEADNonceForIndex(msgIndex, a.core, a)
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError(
+			fmt.Sprintf("unable to compute XChaCha20-Poly1305 nonce for index %d", msgIndex), err, true,
+		)
 	}
 
 	// Verify output for plain text
@@ -212,7 +226,11 @@ func (a *sodiumXChaCha20Poly1305) Unseal(
 	{
 		outputLen := int64(len(plainText))
 		if outputLen != plainLen {
-			return fmt.Errorf("plain text output buffer wrong size: %d =/= %d", outputLen, plainLen)
+			return goutils.NewConsistencyError(
+				fmt.Sprintf("plain text output buffer wrong size: %d =/= %d", outputLen, plainLen),
+				nil,
+				true,
+			)
 		}
 	}
 
@@ -220,11 +238,11 @@ func (a *sodiumXChaCha20Poly1305) Unseal(
 	cipherTextCore := unsafe.Pointer(&cipherText[0])
 	keyCore, err := a.key.GetCArray()
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to get pointer to cipher text buffer", err, true)
 	}
 	nonceCore, err := theNonce.GetCArray()
 	if err != nil {
-		return err
+		return goutils.NewRuntimeError("unable to get pointer to XChaCha20-Poly1305 nonce", err, true)
 	}
 	plainTextPtr := unsafe.Pointer(&plainText[0])
 	var additionalPtr unsafe.Pointer
@@ -247,8 +265,11 @@ func (a *sodiumXChaCha20Poly1305) Unseal(
 		(*C.uchar)(keyCore),
 	)
 	if resp != 0 {
-		err := fmt.Errorf("decryption failed with %d", resp)
-		return err
+		return common.NewSodiumError(
+			fmt.Sprintf("XChaCha20-Poly1305 decryption failed with %d for index %d", resp, msgIndex),
+			nil,
+			true,
+		)
 	}
 
 	return nil

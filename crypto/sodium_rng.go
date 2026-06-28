@@ -6,9 +6,9 @@ import "C"
 
 import (
 	"context"
-	"fmt"
 	"io"
 
+	"github.com/alwitt/goutils"
 	"github.com/apex/log"
 )
 
@@ -26,14 +26,14 @@ func (c *engineImpl) GetRandomBuf(ctxt context.Context, length int) (SecureCSlic
 	newBuf, err := c.AllocateSecureCSlice(length)
 	if err != nil {
 		log.WithError(err).WithFields(logTags).Error("Failed to prepare buffer")
-		return nil, err
+		return nil, goutils.NewRuntimeError("Failed to prepare buffer", err, true)
 	}
 
 	// Get the random data
 	bufPtr, err := newBuf.GetCArray()
 	if err != nil {
 		log.WithError(err).WithFields(logTags).Error("Unable to access raw C pointer of buffer")
-		return nil, err
+		return nil, goutils.NewRuntimeError("Unable to access raw C pointer of buffer", err, true)
 	}
 
 	log.WithFields(logTags).Debug("Getting random bytes...")
@@ -52,12 +52,12 @@ type RNGReader struct {
 func (r *RNGReader) Read(buf []byte) (int, error) {
 	randomBuf, err := r.core.GetRandomBuf(context.Background(), len(buf))
 	if err != nil {
-		return 0, fmt.Errorf("libsodium RNG call failed [%w]", err)
+		return 0, goutils.NewRuntimeError("libsodium RNG call failed", err, true)
 	}
 
 	randomBufSlice, err := randomBuf.GetSlice()
 	if err != nil {
-		return 0, fmt.Errorf("unable to get random value buffer slice [%w]", err)
+		return 0, goutils.NewRuntimeError("unable to get random value buffer slice", err, true)
 	}
 
 	return copy(buf, randomBufSlice), nil
