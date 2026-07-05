@@ -47,7 +47,7 @@ func (c *engineImpl) init() error {
 		return common.NewSodiumError("failed to initialize 'libsodium'", nil, true)
 	}
 	if resp == 1 {
-		log.WithFields(logTags).Debug("libsodium already initialized")
+		log.WithFields(goutils.UpdateCodePositionInTags(logTags)).Debug("libsodium already initialized")
 	}
 	return nil
 }

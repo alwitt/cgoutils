@@ -78,49 +78,76 @@ func (c *engineImpl) PBKDF(
 	// Verify the inputs
 	if len(passwd) < C.crypto_pwhash_PASSWD_MIN || len(passwd) > C.crypto_pwhash_PASSWD_MAX {
 		err := fmt.Errorf("password failed length constraint")
-		log.WithError(err).WithFields(logTags).Error("PBKDF Key derivation input failure")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("PBKDF Key derivation input failure")
 		return nil, goutils.NewRuntimeError("PBKDF key derivation input failure", err, true)
 	}
 	if saltLen, err := salt.GetLen(); err != nil {
-		log.WithError(err).WithFields(logTags).Error("Unable to read PBKDF salt length")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Unable to read PBKDF salt length")
 		return nil, goutils.NewRuntimeError("Unable to read PBKDF salt length", err, true)
 	} else if saltLen != C.crypto_pwhash_SALTBYTES {
 		err := fmt.Errorf("salt failed length constraint")
-		log.WithError(err).WithFields(logTags).Error("PBKDF Key derivation input failure")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("PBKDF Key derivation input failure")
 		return nil, goutils.NewRuntimeError("PBKDF key derivation input failure", err, true)
 	}
 	if opsLimit < C.crypto_pwhash_OPSLIMIT_MIN || opsLimit > C.crypto_pwhash_OPSLIMIT_MAX {
 		err := fmt.Errorf("computation complexity limit outside of supported range")
-		log.WithError(err).WithFields(logTags).Error("PBKDF Key derivation input failure")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("PBKDF Key derivation input failure")
 		return nil, goutils.NewRuntimeError("PBKDF key derivation input failure", err, true)
 	}
 	if memLimit < C.crypto_pwhash_MEMLIMIT_MIN || memLimit > C.crypto_pwhash_MEMLIMIT_MAX {
 		err := fmt.Errorf("memory complexity limit outside of supported range")
-		log.WithError(err).WithFields(logTags).Error("PBKDF Key derivation input failure")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("PBKDF Key derivation input failure")
 		return nil, goutils.NewRuntimeError("PBKDF key derivation input failure", err, true)
 	}
 	if outLength < C.crypto_pwhash_BYTES_MIN || outLength > C.crypto_pwhash_BYTES_MAX {
 		err := fmt.Errorf("target key length outside of supported range")
-		log.WithError(err).WithFields(logTags).Error("PBKDF Key derivation input failure")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("PBKDF Key derivation input failure")
 		return nil, goutils.NewRuntimeError("PBKDF key derivation input failure", err, true)
 	}
 
 	// Generate output buffer
 	output, err := c.AllocateSecureCSlice(outLength)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to allocate output buffer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to allocate output buffer")
 		return nil, goutils.NewRuntimeError("Failed to allocate output buffer", err, true)
 	}
 
 	outputPtr, err := output.GetCArray()
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Unable to get output buffer pointer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Unable to get output buffer pointer")
 		return nil, goutils.NewRuntimeError("Unable to get output buffer pointer", err, true)
 	}
 
 	saltPtr, err := salt.GetCArray()
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Unable to get salt pointer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Unable to get salt pointer")
 		return nil, goutils.NewRuntimeError("Unable to get salt pointer", err, true)
 	}
 

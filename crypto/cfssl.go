@@ -78,7 +78,7 @@ func (c *cfsslClientImpl) makeRequest(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			WithField("outbound-request-id", reqID).
 			Error("Unable to serialize payload")
 	}
@@ -111,7 +111,7 @@ func (c *cfsslClientImpl) makeRequest(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			WithField("outbound-request-id", reqID).
 			Error("Request failed on call")
 		return nil, goutils.NewRuntimeError("request failed on call", err, true)
@@ -127,7 +127,7 @@ func (c *cfsslClientImpl) makeRequest(
 		err := goutils.NewHTTPRequestError(resp.StatusCode(), message, nil, true)
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			WithField("outbound-request-id", reqID).
 			Error("Request failed")
 		return nil, err
@@ -165,7 +165,10 @@ func (c *cfsslClientImpl) SignCSR(
 	// Make request
 	respRaw, err := c.makeRequest(ctxt, targetURL, "POST", &requestPayload, nil, nil, logTags)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("CSR request failed")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("CSR request failed")
 		return "", err
 	}
 
@@ -179,20 +182,26 @@ func (c *cfsslClientImpl) SignCSR(
 	}
 	var resp cfsslCSRResponse
 	if err := json.Unmarshal(respRaw, &resp); err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to parse CSR response")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to parse CSR response")
 		return "", goutils.NewBadInputError("failed to parse CSR response", err, true)
 	}
 	if !resp.Success {
 		err := goutils.NewRuntimeError("cfssl failed to sign CSR", nil, true)
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			WithField("resp", string(respRaw)).
 			Error("Failed to sign CSR")
 		return "", err
 	}
 	if err := c.validate.Struct(&resp); err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to validate CSR response")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to validate CSR response")
 		return "", goutils.NewValidationError("failed to validate CSR response", err, true)
 	}
 

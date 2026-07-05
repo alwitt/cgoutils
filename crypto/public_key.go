@@ -61,7 +61,10 @@ func (c *engineImpl) CreateED25519SelfSignedCA(
 	// Generate a new ed25519 key pair
 	pubKey, privKey, err := ed25519.GenerateKey(nil)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to generate ED25519 key pair")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to generate ED25519 key pair")
 		return nil, nil, common.NewCryptoError("failed to generate ED25519 key pair", err, true)
 	}
 
@@ -83,7 +86,10 @@ func (c *engineImpl) CreateED25519SelfSignedCA(
 	// Generate the cert
 	cert, err := x509.CreateCertificate(rand.Reader, certSpec, certSpec, pubKey, privKey)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to generate ED25519 self-signed CA cert")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to generate ED25519 self-signed CA cert")
 		return nil, nil, common.NewCryptoError(
 			"failed to generate ED25519 self-signed CA cert", err, true,
 		)
@@ -122,7 +128,10 @@ func (c *engineImpl) CreateED25519CSR(
 	// Generate a new ed25519 key pair
 	_, privKey, err := ed25519.GenerateKey(nil)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to generate ED25519 key pair")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to generate ED25519 key pair")
 		return nil, nil, common.NewCryptoError("failed to generate ED25519 key pair", err, true)
 	}
 
@@ -138,7 +147,10 @@ func (c *engineImpl) CreateED25519CSR(
 	// Generate the CSR
 	csrPayload, err := x509.CreateCertificateRequest(rand.Reader, csrReqParams, privKey)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to generate ED25519 CSR")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to generate ED25519 CSR")
 		return nil, nil, common.NewCryptoError("failed to generate ED25519 CSR", err, true)
 	}
 
@@ -164,12 +176,18 @@ func (c *engineImpl) ParseRSAPrivateKeyFromPEM(
 	pemBlock, _ := pem.Decode([]byte(keyPem))
 	if pemBlock == nil {
 		err := goutils.NewBadInputError("failed to parse out a PEM block from input", nil, true)
-		log.WithError(err).WithFields(logTags).Error("Failed to PEM decode a certificate")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to PEM decode a certificate")
 		return nil, err
 	}
 	if pemBlock.Bytes == nil {
 		err := goutils.NewBadInputError("read empty payload from the PEM block", nil, true)
-		log.WithError(err).WithFields(logTags).Error("Certificate contained no payload")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Certificate contained no payload")
 		return nil, err
 	}
 
@@ -177,7 +195,10 @@ func (c *engineImpl) ParseRSAPrivateKeyFromPEM(
 		// Using PKCS1
 		theKey, err := x509.ParsePKCS1PrivateKey(pemBlock.Bytes)
 		if err != nil {
-			log.WithError(err).WithFields(logTags).Error("Failed to parse PKCS1 RSA key")
+			log.
+				WithError(err).
+				WithFields(goutils.UpdateCodePositionInTags(logTags)).
+				Error("Failed to parse PKCS1 RSA key")
 			return nil, common.NewCryptoError("failed to parse PKCS1 RSA key", err, true)
 		}
 		return theKey, nil
@@ -185,13 +206,19 @@ func (c *engineImpl) ParseRSAPrivateKeyFromPEM(
 	// Use PKCS8
 	rawKey, err := x509.ParsePKCS8PrivateKey(pemBlock.Bytes)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to parse PKCS8 RSA key")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to parse PKCS8 RSA key")
 		return nil, common.NewCryptoError("failed to parse PKCS8 RSA key", err, true)
 	}
 	theKey, ok := rawKey.(*rsa.PrivateKey)
 	if !ok {
 		err := goutils.NewBadInputError("core of PKCS8 private key of is not RSA", nil, true)
-		log.WithError(err).WithFields(logTags).Error("Did not find RSA key material")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Did not find RSA key material")
 		return nil, err
 	}
 	return theKey, nil
@@ -213,19 +240,28 @@ func (c *engineImpl) ParseCertificateFromPEM(
 	pemBlock, _ := pem.Decode([]byte(certPem))
 	if pemBlock == nil {
 		err := goutils.NewBadInputError("failed to parse out a PEM block from input", nil, true)
-		log.WithError(err).WithFields(logTags).Error("Failed to PEM decode a certificate")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to PEM decode a certificate")
 		return nil, err
 	}
 	if pemBlock.Bytes == nil {
 		err := goutils.NewBadInputError("read empty payload from the PEM block", nil, true)
-		log.WithError(err).WithFields(logTags).Error("Certificate contained no payload")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Certificate contained no payload")
 		return nil, err
 	}
 
 	// Parse the DER encoded string for a certificate
 	cert, err := x509.ParseCertificate(pemBlock.Bytes)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to parse certificate")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to parse certificate")
 		return nil, common.NewCryptoError("failed to parse certificate", err, true)
 	}
 	return cert, nil

@@ -25,20 +25,26 @@ func (c *engineImpl) GetRandomBuf(ctxt context.Context, length int) (SecureCSlic
 	// Prepare new buffer
 	newBuf, err := c.AllocateSecureCSlice(length)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to prepare buffer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to prepare buffer")
 		return nil, goutils.NewRuntimeError("Failed to prepare buffer", err, true)
 	}
 
 	// Get the random data
 	bufPtr, err := newBuf.GetCArray()
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Unable to access raw C pointer of buffer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Unable to access raw C pointer of buffer")
 		return nil, goutils.NewRuntimeError("Unable to access raw C pointer of buffer", err, true)
 	}
 
-	log.WithFields(logTags).Debug("Getting random bytes...")
+	log.WithFields(goutils.UpdateCodePositionInTags(logTags)).Debug("Getting random bytes...")
 	C.randombytes_buf(bufPtr, C.size_t(length))
-	log.WithFields(logTags).Debug("Got random bytes.")
+	log.WithFields(goutils.UpdateCodePositionInTags(logTags)).Debug("Got random bytes.")
 
 	return newBuf, nil
 }

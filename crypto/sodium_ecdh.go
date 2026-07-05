@@ -40,14 +40,20 @@ func (c *engineImpl) NewECDHKeyPair(ctxt context.Context) (ECDHKeyPair, error) {
 	// Prepare two buffer to hold the private and public keys
 	privateSlice, err := c.AllocateSecureCSlice(C.crypto_kx_SECRETKEYBYTES)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to allocate ECDH private key buffer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to allocate ECDH private key buffer")
 		return ECDHKeyPair{}, goutils.NewRuntimeError(
 			"failed to allocate ECDH private key buffer", err, true,
 		)
 	}
 	publicSlice, err := c.AllocateSecureCSlice(C.crypto_kx_PUBLICKEYBYTES)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to allocate ECDH public key buffer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to allocate ECDH public key buffer")
 		return ECDHKeyPair{}, goutils.NewRuntimeError(
 			"failed to allocate ECDH public key buffer", err, true,
 		)
@@ -55,14 +61,20 @@ func (c *engineImpl) NewECDHKeyPair(ctxt context.Context) (ECDHKeyPair, error) {
 
 	privatePtr, err := privateSlice.GetCArray()
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Unable to get ECDH private key buffer pointer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Unable to get ECDH private key buffer pointer")
 		return ECDHKeyPair{}, goutils.NewRuntimeError(
 			"unable to get ECDH private key buffer pointer", err, true,
 		)
 	}
 	publicPtr, err := publicSlice.GetCArray()
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Unable to get ECDH public key buffer pointer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Unable to get ECDH public key buffer pointer")
 		return ECDHKeyPair{}, goutils.NewRuntimeError(
 			"unable to get ECDH public key buffer pointer", err, true,
 		)
@@ -94,14 +106,20 @@ func (c *engineImpl) ComputeClientECDHSessionKeys(
 	// Prepare two buffer to hold the RX and TX session keys
 	rxSlice, err := c.AllocateSecureCSlice(C.crypto_kx_SESSIONKEYBYTES)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to allocate ECDH RX session key buffer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to allocate ECDH RX session key buffer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"failed to allocate ECDH RX session key buffer", err, true,
 		)
 	}
 	txSlice, err := c.AllocateSecureCSlice(C.crypto_kx_SESSIONKEYBYTES)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to allocate ECDH TX session key buffer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to allocate ECDH TX session key buffer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"failed to allocate ECDH TX session key buffer", err, true,
 		)
@@ -111,7 +129,7 @@ func (c *engineImpl) ComputeClientECDHSessionKeys(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			Error("Unable to get ECDH RX session key buffer pointer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"unable to get ECDH RX session key buffer pointer", err, true,
@@ -121,7 +139,7 @@ func (c *engineImpl) ComputeClientECDHSessionKeys(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			Error("Unable to get ECDH TX session key buffer pointer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"unable to get ECDH TX session key buffer pointer", err, true,
@@ -132,7 +150,7 @@ func (c *engineImpl) ComputeClientECDHSessionKeys(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			Error("Unable to get client ECDH private key buffer pointer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"Unable to get client ECDH private key buffer pointer", err, true,
@@ -142,7 +160,7 @@ func (c *engineImpl) ComputeClientECDHSessionKeys(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			Error("Unable to get client ECDH public key buffer pointer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"unable to get client ECDH public key buffer pointer", err, true,
@@ -152,7 +170,7 @@ func (c *engineImpl) ComputeClientECDHSessionKeys(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			Error("Unable to get server ECDH public key buffer pointer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"Unable to get server ECDH public key buffer pointer", err, true,
@@ -191,14 +209,20 @@ func (c *engineImpl) ComputeServerECDHSessionKeys(
 	// Prepare two buffer to hold the RX and TX session keys
 	rxSlice, err := c.AllocateSecureCSlice(C.crypto_kx_SESSIONKEYBYTES)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to allocate ECDH RX session key buffer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to allocate ECDH RX session key buffer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"failed to allocate ECDH RX session key buffer", err, true,
 		)
 	}
 	txSlice, err := c.AllocateSecureCSlice(C.crypto_kx_SESSIONKEYBYTES)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to allocate ECDH TX session key buffer")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to allocate ECDH TX session key buffer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"failed to allocate ECDH TX session key buffer", err, true,
 		)
@@ -208,7 +232,7 @@ func (c *engineImpl) ComputeServerECDHSessionKeys(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			Error("Unable to get ECDH RX session key buffer pointer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"unable to get ECDH RX session key buffer pointer", err, true,
@@ -218,7 +242,7 @@ func (c *engineImpl) ComputeServerECDHSessionKeys(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			Error("Unable to get ECDH TX session key buffer pointer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"unable to get ECDH TX session key buffer pointer", err, true,
@@ -229,7 +253,7 @@ func (c *engineImpl) ComputeServerECDHSessionKeys(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			Error("Unable to get server ECDH private key buffer pointer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"unable to get server ECDH private key buffer pointer", err, true,
@@ -239,7 +263,7 @@ func (c *engineImpl) ComputeServerECDHSessionKeys(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			Error("Unable to get server ECDH public key buffer pointer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"Unable to get server ECDH public key buffer pointer", err, true,
@@ -249,7 +273,7 @@ func (c *engineImpl) ComputeServerECDHSessionKeys(
 	if err != nil {
 		log.
 			WithError(err).
-			WithFields(logTags).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
 			Error("Unable to get client ECDH public key buffer pointer")
 		return ECDHSessionKeys{}, goutils.NewRuntimeError(
 			"Unable to get client ECDH public key buffer pointer", err, true,

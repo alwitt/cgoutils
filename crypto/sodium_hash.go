@@ -46,7 +46,10 @@ func (c *engineImpl) GetHasher(ctxt context.Context, key SecureCSlice) (Hasher, 
 
 	state, err := c.AllocateSecureCSlice(C.sizeof_crypto_generichash_state)
 	if err != nil {
-		log.WithError(err).WithFields(logTags).Error("Failed to initialize buffer for hasher state")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("Failed to initialize buffer for hasher state")
 		return nil, goutils.NewRuntimeError(
 			"failed to initialize buffer for hasher state", err, true,
 		)
@@ -58,7 +61,10 @@ func (c *engineImpl) GetHasher(ctxt context.Context, key SecureCSlice) (Hasher, 
 
 	// Initialize the hasher
 	if err := hasher.init(); err != nil {
-		log.WithError(err).WithFields(logTags).Error("libsodium hasher failed to initialize")
+		log.
+			WithError(err).
+			WithFields(goutils.UpdateCodePositionInTags(logTags)).
+			Error("libsodium hasher failed to initialize")
 		return nil, goutils.NewRuntimeError("libsodium hasher failed to initialize", err, true)
 	}
 
