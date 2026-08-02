@@ -3,7 +3,7 @@ module github.com/alwitt/cgoutils
 go 1.25.0
 
 require (
-	github.com/alwitt/goutils v0.12.2-rc1
+	github.com/alwitt/goutils v0.12.2
 	github.com/apex/log v1.9.0
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/go-resty/resty/v2 v2.17.1

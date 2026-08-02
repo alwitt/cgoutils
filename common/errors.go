@@ -1,4 +1,5 @@
-package common
+// Package common - common utility structs and functions
+package common //revive:disable-line:var-naming
 
 import "github.com/alwitt/goutils"
 
