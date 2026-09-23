@@ -56,6 +56,7 @@ require (
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/segmentio/asm v1.1.3 // indirect
 	github.com/segmentio/encoding v0.5.4 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tinylib/msgp v1.6.1 // indirect
 	github.com/urfave/negroni v1.0.0 // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect

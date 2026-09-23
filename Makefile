@@ -22,6 +22,14 @@ test: .prepare ## Run unittests
 one-test: .prepare ## Run one unittest
 	go test --count 1 -v -timeout 30s -run ^$(FILTER) github.com/alwitt/cgoutils/...
 
+.PHONY: test-package
+test-package: .prepare ## Run all tests in a package. Set `PKG` as target package
+	go test --count 1 -timeout 30s -short github.com/alwitt/cgoutils/$(PKG)/...
+
+.PHONY: mock
+mock: ## Define support mocks
+	@mockery
+
 .PHONY: prep-cfssl
 prep-cfssl: .prepare ## Prepare CA certficate for use by development cfssl
 	mkdir -vp tmp/test_ca
